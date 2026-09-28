@@ -4,6 +4,7 @@ project(EventLogger LANGUAGES CXX)
 
 add_executable(event_gateway
     src/main.cpp
+    src/event_queue.cpp
 )
 
 target_compile_features(event_gateway PRIVATE cxx_std_23)
