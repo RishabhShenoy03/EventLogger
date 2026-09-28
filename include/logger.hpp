@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #include "event.hpp"
 
 class Logger{

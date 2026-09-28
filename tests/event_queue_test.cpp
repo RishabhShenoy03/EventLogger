@@ -7,12 +7,15 @@ int main() {
 
     assert(queue.empty());
     
-    Event A(EventType::MotionDetected, "EventQueue Test", std::chrono::system_clock::now(), "Motion Detected");
-    Event B(EventType::SensorReading, "EventQueue Test", std::chrono::system_clock::now(), "Sensor Reading");
-    Event C(EventType::DeviceOnline, "EventQueue Test", std::chrono::system_clock::now(), "Device Online");
-    queue.push(A);
-    queue.push(B);
-    queue.push(C);
+    Event event_a{EventType::MotionDetected, "Event A", std::chrono::system_clock::time_point{
+        std::chrono::seconds{1}}, "Motion Detected"};
+    Event event_b{EventType::SensorReading, "Event B", std::chrono::system_clock::time_point{
+        std::chrono::seconds{1}}, "Sensor Reading"};
+    Event event_c{EventType::DeviceOnline, "Event C", std::chrono::system_clock::time_point{
+        std::chrono::seconds{3}}, "Device Online"};
+    queue.push(event_a);
+    queue.push(event_b);
+    queue.push(event_c);
     assert(queue.size() == 3);
 
     auto first = queue.try_pop();
