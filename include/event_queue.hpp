@@ -13,8 +13,8 @@ private:
 
 public:
     std::size_t size() const;
-    bool isEmpty() const;
+    bool empty() const;
     void clear();
-    std::optional<Event> try_pop();
+    [[nodiscard]] std::optional<Event> try_pop();
     void push(const Event& event);
 };

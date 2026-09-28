@@ -4,40 +4,58 @@ project(EventLogger LANGUAGES CXX)
 
 enable_testing()
 
+# Reusable project code
+add_library(event_core
+    src/event_queue.cpp
+    src/logger.cpp
+)
+
+target_compile_features(event_core PUBLIC cxx_std_23)
+
+target_include_directories(event_core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(event_core PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+# Main application
 add_executable(event_gateway
     src/main.cpp
-    src/event_queue.cpp
 )
 
+target_link_libraries(event_gateway PRIVATE
+    event_core
+)
+
+# Tests
+# Event Queue Test
 add_executable(event_queue_test
     tests/event_queue_test.cpp
-    src/event_queue.cpp
 )
 
-target_compile_features(event_gateway PRIVATE cxx_std_23)
-target_compile_features(event_queue_test PRIVATE cxx_std_23)
-
-target_compile_options(event_gateway PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-)
-
-target_compile_options(event_queue_test PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-)
-
-target_include_directories(event_gateway PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_include_directories(event_queue_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_link_libraries(event_queue_test PRIVATE
+    event_core
 )
 
 add_test(
     NAME event_queue_test
     COMMAND event_queue_test
+)
+
+# Logger Test
+add_executable(logger_test
+    tests/logger_test.cpp
+)
+
+target_link_libraries(logger_test PRIVATE
+    event_core
+)
+
+add_test(
+    NAME logger_test
+    COMMAND logger_test
 )
