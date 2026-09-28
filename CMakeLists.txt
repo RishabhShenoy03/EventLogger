@@ -8,6 +8,7 @@ enable_testing()
 add_library(event_core
     src/event_queue.cpp
     src/logger.cpp
+    src/fake_sensor.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)

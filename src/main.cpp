@@ -1,26 +1,32 @@
 #include "event_queue.hpp"
 #include "logger.hpp"
+#include "fake_sensor.hpp"
 
 #include <iostream>
 
 int main() {
-    EventQueue queue;
-    
-    Event event{
-        .type = EventType::MotionDetected,
-        .source = "fake_sensor",
-        .timestamp = std::chrono::system_clock::now(),
-        .payload = "Motion detected"
-    };
-
-    queue.push(event);
-
+    FakeSensor fake_sensor{};
+    EventQueue queue{};
     Logger logs{std::cout};
 
-    logs.log(event);
+    while (true){
+        auto opt_event = fake_sensor.sense_fake_event();
+        if (opt_event.has_value()){
+            queue.push(*opt_event);
+        }
+        else{
+            break;
+        }
+    }
+    
+    while (true) {
+        auto opt_event = queue.try_pop();
+        if (!opt_event.has_value()) {
+            break;
+        }
 
-    std::cout << event.source << ": "
-              << event.payload << '\n';
+        logs.log(*opt_event);
+    }
 
     return 0;
 }
