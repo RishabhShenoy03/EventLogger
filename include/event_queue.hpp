@@ -12,8 +12,8 @@ private:
     std::deque<Event> events_;
 
 public:
-    std::size_t size() const;
-    bool empty() const;
+    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] bool empty() const;
     void clear();
     [[nodiscard]] std::optional<Event> try_pop();
     void push(const Event& event);

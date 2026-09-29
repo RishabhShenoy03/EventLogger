@@ -2,12 +2,12 @@
 
 #include "event_queue.hpp"
 
-std::size_t EventQueue::size() const {
+[[nodiscard]] std::size_t EventQueue::size() const {
     // std::lock_guard<std::mutex> lock(mutex_);
     return events_.size();
 }
 
-bool EventQueue::empty() const {
+[[nodiscard]] bool EventQueue::empty() const {
     return events_.size() == 0;
 }
 

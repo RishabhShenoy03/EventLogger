@@ -11,7 +11,6 @@ private:
     std::ostream& output_;
 
 public:
-
     Logger(std::ostream& output);
     void log(const Event& event);
 };

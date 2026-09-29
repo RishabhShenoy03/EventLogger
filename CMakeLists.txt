@@ -32,7 +32,22 @@ target_link_libraries(event_gateway PRIVATE
     event_core
 )
 
-# Tests
+## Tests ##
+
+# Pipeline (whole) Test
+add_executable(pipeline_test
+    tests/pipeline_test.cpp
+)
+
+target_link_libraries(pipeline_test PRIVATE
+    event_core
+)
+
+add_test(
+    NAME pipeline_test
+    COMMAND pipeline_test
+)
+
 # Event Queue Test
 add_executable(event_queue_test
     tests/event_queue_test.cpp
@@ -59,4 +74,18 @@ target_link_libraries(logger_test PRIVATE
 add_test(
     NAME logger_test
     COMMAND logger_test
+)
+
+# Fake Sensor Test
+add_executable(fake_sensor_test
+    tests/fake_sensor_test.cpp
+)
+
+target_link_libraries(fake_sensor_test PRIVATE
+    event_core
+)
+
+add_test(
+    NAME fake_sensor_test
+    COMMAND fake_sensor_test
 )

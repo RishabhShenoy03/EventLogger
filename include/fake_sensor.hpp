@@ -11,5 +11,4 @@ private:
 public:
     FakeSensor();
     std::optional<Event> sense_fake_event();
-
 };

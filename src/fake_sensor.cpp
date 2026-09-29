@@ -8,7 +8,7 @@ FakeSensor::FakeSensor() {
         std::chrono::seconds{20}}, "Event B"};
     Event event_c{EventType::DeviceOnline, "FakeSensor", std::chrono::system_clock::time_point{
         std::chrono::seconds{30}}, "Event C"};
-    Event event_d{EventType::DeviceOnline, "FakeSensor ", std::chrono::system_clock::time_point{
+    Event event_d{EventType::DeviceOnline, "FakeSensor", std::chrono::system_clock::time_point{
         std::chrono::seconds{40}}, "Event D"};
 
     events_.push_back(event_a);
@@ -17,7 +17,7 @@ FakeSensor::FakeSensor() {
     events_.push_back(event_d);
 }
 
-std::optional<Event> FakeSensor::sense_fake_event(){
+[[nodiscard]] std::optional<Event> FakeSensor::sense_fake_event(){
     if (index_ < events_.size()){
         return events_[index_++]; // return events_[index_], then post-increment index_
     }
