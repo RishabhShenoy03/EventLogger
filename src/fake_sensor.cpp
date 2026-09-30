@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "fake_sensor.hpp"
 
 FakeSensor::FakeSensor() {

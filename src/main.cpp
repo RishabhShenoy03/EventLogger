@@ -10,7 +10,7 @@ int main() {
     EventQueue queue{};
     Logger logs{std::cout};
 
-
+    
     std::jthread producer([&fake_sensor, &queue]{
             while (true){
                 auto opt_event = fake_sensor.sense_fake_event();

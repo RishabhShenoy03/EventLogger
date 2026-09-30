@@ -34,7 +34,6 @@ void EventQueue::clear() {
     cond_.wait(lock, [this]{                        // wait (release mutex) until queue is not empty OR queue not closed
         return !events_.empty() || closed_;         // consumer wake when there is work OR when shutdown has happen
     });                                             // i.e. stop waiting if there is event to process OR no more events ever
-
     if (events_.empty() && closed_){
         return std::nullopt;
     }
@@ -45,15 +44,19 @@ void EventQueue::clear() {
 }
 
 void EventQueue::push(const Event& event){
-    std::lock_guard<std::mutex> lock(mutex_);
-    events_.push_back(event);
-    // notify_one();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        events_.push_back(event);
+    }
+    cond_.notify_one(); // wake a waiting consumer (logger)
 }
 
 void EventQueue::close() {
-    std::unique_lock<std::mutex> lock(mutex_);
-    closed_ = true;
-    lock.unlock();
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        closed_ = true;
+        lock.unlock();
 
-    // notify_all();
+    }
+    cond_.notify_all(); // wake all waiting consumers (loggers)
 }

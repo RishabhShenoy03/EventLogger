@@ -21,7 +21,7 @@ public:
     [[nodiscard]] bool empty() const;
     void clear();
     [[nodiscard]] std::optional<Event> try_pop();
-    [[nodiscard]] std::optional<Event> EventQueue::wait_and_pop();
+    [[nodiscard]] std::optional<Event> wait_and_pop();
     void push(const Event& event);
     void close();
 };
