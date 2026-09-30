@@ -3,30 +3,38 @@
 #include "fake_sensor.hpp"
 
 #include <iostream>
+#include <thread>
 
 int main() {
     FakeSensor fake_sensor{};
     EventQueue queue{};
     Logger logs{std::cout};
 
-    while (true){
-        auto opt_event = fake_sensor.sense_fake_event();
-        if (opt_event.has_value()){
-            queue.push(*opt_event);
+
+    std::jthread producer([&fake_sensor, &queue]{
+            while (true){
+                auto opt_event = fake_sensor.sense_fake_event();
+                if (opt_event.has_value()){
+                    queue.push(*opt_event);
+                }
+                else{
+                    queue.close();
+                    break;
+                }
+            }
         }
-        else{
-            break;
+    );
+
+    std::jthread consumer([&logs, &queue]{
+            while (true) {
+                auto opt_event = queue.wait_and_pop();
+                if (!opt_event.has_value()) {
+                    break;
+                }
+                logs.log(*opt_event);
+            }
         }
-    }
+    );
     
-    while (true) {
-        auto opt_event = queue.try_pop();
-        if (!opt_event.has_value()) {
-            break;
-        }
-
-        logs.log(*opt_event);
-    }
-
     return 0;
 }
