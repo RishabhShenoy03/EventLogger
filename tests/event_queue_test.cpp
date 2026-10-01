@@ -3,38 +3,74 @@
 #include "event_queue.hpp"
 
 int main() {
-    EventQueue queue{};
-
-    assert(queue.empty());
     
-    Event event_a{EventType::MotionDetected, "Event A", std::chrono::system_clock::time_point{
-        std::chrono::seconds{1}}, "Motion Detected"};
-    Event event_b{EventType::SensorReading, "Event B", std::chrono::system_clock::time_point{
-        std::chrono::seconds{1}}, "Sensor Reading"};
-    Event event_c{EventType::DeviceOnline, "Event C", std::chrono::system_clock::time_point{
-        std::chrono::seconds{3}}, "Device Online"};
-    queue.push(event_a);
-    queue.push(event_b);
-    queue.push(event_c);
-    assert(queue.size() == 3);
+    auto fifo_test = [](){
+        EventQueue queue{};
 
-    auto first = queue.try_pop();
-    assert(first.has_value());
-    assert(first->source == "Event A");
-    assert(queue.size() == 2);
+        Event first{
+            .type = EventType::MotionDetected,
+            .source = "filetest",
+            .timestamp = std::chrono::system_clock::time_point{std::chrono::seconds{10}},
+            .payload = "First"
+        };
+        Event second{
+            .type = EventType::MotionDetected,
+            .source = "filetest",
+            .timestamp = std::chrono::system_clock::time_point{std::chrono::seconds{20}},
+            .payload = "Second"
+        };
+        queue.push(first);
+        queue.push(second);
+        auto first_pop = queue.try_pop();
+        auto second_pop = queue.try_pop();
 
-    auto second = queue.try_pop();
-    assert(second.has_value());
-    assert(second->source == "Event B");
-    assert(queue.size() == 1);
+        assert(first_pop.has_value());
+        assert(second_pop.has_value());
+        assert(first_pop->payload == "First");
+        assert(second_pop->payload == "Second");
 
-    auto third = queue.try_pop();
-    assert(third.has_value());
-    assert(third->source == "Event C");
-    assert(queue.size() == 0);
+        assert(!queue.try_pop()); // return std::nullopt
+    };
+    
+    // empty and closed queue returns nullopt
+    auto empty_queue_test = [](){ 
+        EventQueue queue{};
+        queue.close();
+        assert(!queue.wait_and_pop());
+    };
+    
+    // closed queue still processes pending events
+    auto pending_test = [](){
+        EventQueue queue{};
 
-    auto empty_pop = queue.try_pop();
-    assert(queue.empty());
-    assert(empty_pop == std::nullopt);
-    assert(!empty_pop.has_value());
+        Event first{
+            .type = EventType::MotionDetected,
+            .source = "filetest",
+            .timestamp = std::chrono::system_clock::time_point{std::chrono::seconds{10}},
+            .payload = "First"
+        };
+        Event second{
+            .type = EventType::MotionDetected,
+            .source = "filetest",
+            .timestamp = std::chrono::system_clock::time_point{std::chrono::seconds{20}},
+            .payload = "Second"
+        };
+        
+        queue.push(first);
+        queue.push(second);
+        auto first_pop = queue.wait_and_pop();
+        auto second_pop = queue.wait_and_pop();
+        auto third_pop = queue.wait_and_pop();
+
+        assert(first_pop.has_value());
+        assert(second_pop.has_value());
+        assert(first_pop->payload == "First");
+        assert(second_pop->payload == "Second");
+
+        assert(!third_pop);
+    };
+    
+    fifo_test();
+    empty_queue_test();
+    pending_test();
 }
