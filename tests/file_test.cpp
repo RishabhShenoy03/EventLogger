@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include <array>
+#include <thread>
 
 #include "event_queue.hpp"
 #include "logger.hpp"
@@ -25,8 +26,20 @@ int main() {
             .timestamp = std::chrono::system_clock::time_point{std::chrono::seconds{20}},
             .payload = "Second"
         };
-        queue.push(first);
-        queue.push(second);
+        
+        {
+        std::jthread({
+            queue.push(first);
+            queue.push(second);
+        });
+
+        std::jthread({
+            
+        })
+
+
+        }
+        
         auto first_pop = queue.try_pop();
         auto second_pop = queue.try_pop();
 

@@ -31,6 +31,7 @@ void EventQueue::clear() {
 
 [[nodiscard]] std::optional<Event> EventQueue::wait_and_pop() {
     std::unique_lock<std::mutex> lock(mutex_);
+    
     cond_.wait(lock, [this]{                        // wait (release mutex) until queue is not empty OR queue not closed
         return !events_.empty() || closed_;         // consumer wake when there is work OR when shutdown has happen
     });                                             // i.e. stop waiting if there is event to process OR no more events ever
