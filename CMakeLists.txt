@@ -89,3 +89,17 @@ add_test(
     NAME fake_sensor_test
     COMMAND fake_sensor_test
 )
+
+# Queue Shutdown Test
+add_executable(queue_shutdown_test
+    tests/queue_shutdown_test.cpp
+)
+
+target_link_libraries(queue_shutdown_test PRIVATE
+    event_core
+)
+
+add_test(
+    NAME queue_shutdown_test
+    COMMAND queue_shutdown_test
+)

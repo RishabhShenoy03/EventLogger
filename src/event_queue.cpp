@@ -45,10 +45,10 @@ void EventQueue::clear() {
 }
 
 void EventQueue::push(const Event& event){
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!closed_){
         events_.push_back(event);
-    }
+    }   
     cond_.notify_one(); // wake a waiting consumer (logger)
 }
 
