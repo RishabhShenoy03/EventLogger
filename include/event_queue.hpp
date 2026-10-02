@@ -22,6 +22,6 @@ public:
     void clear();
     [[nodiscard]] std::optional<Event> try_pop();
     [[nodiscard]] std::optional<Event> wait_and_pop();
-    void push(const Event& event);
+    bool push(const Event& event);
     void close();
 };

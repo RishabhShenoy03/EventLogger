@@ -1,5 +1,4 @@
 #include <utility>
-#include <thread>
 
 #include "event_queue.hpp"
 
@@ -44,12 +43,17 @@ void EventQueue::clear() {
     return event;
 }
 
-void EventQueue::push(const Event& event){
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!closed_){
+bool EventQueue::push(const Event& event){
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (closed_){
+            return false;
+        }
         events_.push_back(event);
-    }   
+    }
+    
     cond_.notify_one(); // wake a waiting consumer (logger)
+    return true;
 }
 
 void EventQueue::close() {
@@ -57,7 +61,6 @@ void EventQueue::close() {
         std::unique_lock<std::mutex> lock(mutex_);
         closed_ = true;
         lock.unlock();
-
     }
     cond_.notify_all(); // wake all waiting consumers (loggers)
 }
