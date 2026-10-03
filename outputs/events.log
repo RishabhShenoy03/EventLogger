@@ -1,0 +1,12 @@
+01-01-1970 00:00:10 | FakeSensor | Motion Detected | Event A
+01-01-1970 00:00:20 | FakeSensor | Sensor Reading | Event B
+01-01-1970 00:00:30 | FakeSensor | Device Online | Event C
+01-01-1970 00:00:40 | FakeSensor | Device Online | Event D
+01-01-1970 00:00:10 | FakeSensor | Motion Detected | Event A
+01-01-1970 00:00:20 | FakeSensor | Sensor Reading | Event B
+01-01-1970 00:00:30 | FakeSensor | Device Online | Event C
+01-01-1970 00:00:40 | FakeSensor | Device Online | Event D
+01-01-1970 00:00:10 | FakeSensor | Motion Detected | Event A
+01-01-1970 00:00:20 | FakeSensor | Sensor Reading | Event B
+01-01-1970 00:00:30 | FakeSensor | Device Online | Event C
+01-01-1970 00:00:40 | FakeSensor | Device Online | Event D

@@ -9,6 +9,7 @@ add_library(event_core
     src/event_queue.cpp
     src/logger.cpp
     src/fake_sensor.cpp
+    src/file_everything.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)
@@ -29,6 +30,15 @@ add_executable(event_gateway
 )
 
 target_link_libraries(event_gateway PRIVATE
+    event_core
+)
+
+# file stuff
+add_executable(file_gateway
+    src/file_everything.cpp
+)
+
+target_link_libraries( file_gateway PRIVATE
     event_core
 )
 
