@@ -2,3 +2,4 @@ build
 .vscode
 event_gateway
 outputs
+captures
