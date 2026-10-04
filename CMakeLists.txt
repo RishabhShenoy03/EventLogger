@@ -4,16 +4,18 @@ project(EventLogger LANGUAGES CXX)
 
 enable_testing()
 
+find_package(OpenCV REQUIRED COMPONENTS
+    core imgcodecs imgproc videoio highgui
+)
+
 # Reusable project code
 add_library(event_core
     src/event_queue.cpp
     src/logger.cpp
     src/fake_sensor.cpp
-    src/file_everything.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)
-
 target_include_directories(event_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
@@ -33,12 +35,14 @@ target_link_libraries(event_gateway PRIVATE
     event_core
 )
 
-# file stuff
+add_executable(cameraaa src/camera_capture.cpp)
+target_link_libraries(cameraaa PRIVATE ${OpenCV_LIBS})
+target_include_directories(cameraaa PRIVATE ${OpenCV_INCLUDE_DIRS})
+
 add_executable(file_gateway
     src/file_everything.cpp
 )
-
-target_link_libraries( file_gateway PRIVATE
+target_link_libraries(file_gateway PRIVATE 
     event_core
 )
 
