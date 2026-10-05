@@ -5,7 +5,7 @@ project(EventLogger LANGUAGES CXX)
 enable_testing()
 
 find_package(OpenCV REQUIRED COMPONENTS
-    core imgcodecs imgproc videoio highgui
+    core imgcodecs imgproc videoio highgui objdetect
 )
 
 # Reusable project code

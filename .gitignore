@@ -2,4 +2,6 @@ build
 .vscode
 event_gateway
 outputs
+outputs_sface
+outputs_facedet
 captures
