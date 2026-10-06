@@ -56,21 +56,28 @@ int main() {
     cv::destroyAllWindows();
 
     // initialise model path
-    std::string faceDet_model = "models/face_detection_yunet_2023mar.onnx";
+    const std::string faceDet_model = "models/face_detection_yunet_2023mar.onnx";
     std::filesystem::create_directories("outputs_facedet");
 
-    std::string sface_path = "models/face_recognition_sface_2021dec.onnx";
+    const std::string sface_path = "models/face_recognition_sface_2021dec.onnx";
     std::filesystem::create_directories("outputs_sface");
+
+    cv::Ptr<cv::FaceDetectorYN> detector = cv::FaceDetectorYN::create(
+        faceDet_model, "", cv::Size(1,1), 0.9f, 0.3f, 5000, 0, 0
+    );
+    cv::Ptr<cv::FaceRecognizerSF> recognizer = cv::FaceRecognizerSF::create(
+        sface_path, ""
+    );
 
     for (std::size_t i = 0; i < frame_count; i++) {
         std::string img_path = std::string("captures/frame") + std::to_string(i)
                             + std::string(".png");
-        cv::Mat img = cv::imread(img_path);                    
-        cv::Size inputSize(img.cols, img.rows);
+        cv::Mat img = cv::imread(img_path);
         
-        cv::Ptr<cv::FaceDetectorYN> detector = cv::FaceDetectorYN::create(
-            faceDet_model, "", inputSize, 0.9f, 0.3f, 5000, 0, 0
-        );
+        if (img.empty()){
+            continue;
+        }              
+        cv::Size inputSize(img.cols, img.rows);
 
         // 3. Set input size if image dimensions change
         detector->setInputSize(inputSize);
@@ -96,7 +103,6 @@ int main() {
         cv::imwrite(output_path, img);
 
         if (faces.rows > 0){
-            cv::Ptr<cv::FaceRecognizerSF> recognizer = cv::FaceRecognizerSF::create(sface_path, "");
             cv::Mat aligned_face;
             recognizer->alignCrop(img, faces.row(0), aligned_face);
 

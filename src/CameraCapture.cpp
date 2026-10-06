@@ -1,6 +1,4 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
 #include <stdexcept>
 
 #include <opencv2/opencv.hpp>

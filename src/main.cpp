@@ -1,11 +1,14 @@
 #include "event_queue.hpp"
 #include "logger.hpp"
 #include "fake_sensor.hpp"
+#include "CameraCapture.hpp"
+#include "FaceProcessor.hpp"
 
 #include <iostream>
 #include <thread>
 
 int main() {
+    CameraCapture
     FakeSensor fake_sensor{};
     EventQueue queue{};
     Logger logs{std::cout};
