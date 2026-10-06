@@ -15,5 +15,5 @@ class FaceProcessor {
 public:
 
     FaceProcessor();
-    void detect(const cv::Mat& frame);
+    cv::Mat detect(const cv::Mat& frame);
 };
