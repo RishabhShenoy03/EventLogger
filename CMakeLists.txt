@@ -103,3 +103,14 @@ add_test(
     NAME fake_sensor_test
     COMMAND fake_sensor_test
 )
+
+add_executable(camera_capture_test
+    tests/camera_capture_test.cpp
+)
+target_link_libraries(camera_capture_test PRIVATE
+    ${OpenCV_LIBS}
+)
+add_test(
+    NAME camera_capture_test
+    COMMAND camera_capture_test
+)
