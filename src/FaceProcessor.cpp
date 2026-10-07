@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -28,4 +29,23 @@ cv::Mat FaceProcessor::detect(const cv::Mat& frame) {
 
     std::cout << "Faces detected: " << faces.rows << std::endl;
     return faces;
+}
+
+std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& frame, const cv::Mat& faces) {
+    if (faces.empty()) {
+        return std::vector<cv::Mat>{};
+    }
+    
+    cv::Mat aligned_face;
+    std::vector<cv::Mat> features{};
+    features.reserve(faces.rows);
+
+    for (int i = 0; i < faces.rows; i++) {
+        recognizer_->alignCrop(frame, faces.row(i), aligned_face);
+
+        cv::Mat feature;
+        recognizer_->feature(aligned_face, feature);
+        features.push_back(feature);
+    }
+    return features;
 }

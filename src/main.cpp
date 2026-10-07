@@ -8,7 +8,11 @@
 #include <thread>
 
 int main() {
-    CameraCapture
+    CameraCapture{};
+    FaceProcessor{};
+
+    w
+
     FakeSensor fake_sensor{};
     EventQueue queue{};
     Logger logs{std::cout};
@@ -38,6 +42,8 @@ int main() {
             }
         }
     );
+
+
     
     return 0;
 }
