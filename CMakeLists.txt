@@ -21,6 +21,7 @@ add_library(event_core
     src/fake_sensor.cpp
     src/CameraCapture.cpp
     src/FaceProcessor.cpp
+    src/FaceRegistry.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)

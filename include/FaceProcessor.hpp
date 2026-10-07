@@ -16,5 +16,5 @@ public:
 
     FaceProcessor();
     cv::Mat detect(const cv::Mat& frame);
-    std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& img, const cv::Mat& faces)
+    std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& img, const cv::Mat& faces);
 };

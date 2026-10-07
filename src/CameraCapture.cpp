@@ -17,5 +17,8 @@ CameraCapture::CameraCapture(): cap_("/dev/video0", cv::CAP_V4L2) {
 cv::Mat CameraCapture::capture() {
     cv::Mat frame;
     cap_.read(frame);
+    if (frame.empty()) {
+        throw std::runtime_error("No picture captured");
+    }
     return frame;
 }
