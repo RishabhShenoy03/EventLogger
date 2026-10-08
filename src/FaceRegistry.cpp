@@ -35,21 +35,15 @@ void FaceRegistry::enroll_persons() {
             }
 
             cv::Mat faces  = processor.detect(pic);
-            if (faces.empty()) {
+            if (faces.rows != 1) { // rej more than 1 face detected
                 continue;
             }
 
             std::vector<cv::Mat> features = processor.extract(pic, faces);
-            if (features.empty()) {
+            if (features.size() != 1){ // rej >1 face feature extracted
                 continue;
             }
-
-            auto& enrolled_features = registry[person_name];
-            enrolled_features.insert(
-                enrolled_features.begin(),
-                features.begin(),
-                features.end()
-            );
+            registry_[person_id].push_back(features.front());
         }
     }
 }

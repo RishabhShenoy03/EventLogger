@@ -7,6 +7,7 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
+
 #include "FaceProcessor.hpp"
 
 FaceProcessor::FaceProcessor():
@@ -15,7 +16,8 @@ FaceProcessor::FaceProcessor():
     )),
     recognizer_(cv::FaceRecognizerSF::create(
         sface_path, ""
-    )){}
+    )),
+    registry_(FaceRegistry::FaceRegistry()){}
 
 cv::Mat FaceProcessor::detect(const cv::Mat& frame) {
     if (frame.empty()){
