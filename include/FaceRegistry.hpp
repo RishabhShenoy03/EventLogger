@@ -18,11 +18,12 @@ struct FaceRegistry {
 public:
     std::unordered_map<PersonID, std::vector<cv::Mat>> registry_;
     const std::filesystem::path enrolled_imgs = std::string("/home/rish/Desktop/projects/EventLogger/featuremap_images");
-    FaceProcessor processor{};
+    FaceProcessor& processor_;
     
-    FaceRegistry();
+    FaceRegistry(FaceProcessor& processor);
     void enroll_persons();
-    std::optional<PersonID> convert_personID(const std::string& person_name);
+    PersonID stringToPersonID(const std::string& person_name);
+    std::string personIDToString(const PersonID& personid);
     std::optional<PersonMatch> match(const cv::Mat& feature);
-
+    std::string id_to_payload(const PersonMatch& match_info);
 };

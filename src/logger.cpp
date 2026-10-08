@@ -12,11 +12,9 @@ std::string Logger::timeToString(const std::chrono::system_clock::time_point& ti
 
 std::string Logger::eventtypeToString(const EventType& type) {
     switch (type) {
-        case EventType::DeviceOffline:      return "Device Offline";
-        case EventType::DeviceOnline:       return "Device Online";
-        case EventType::MotionDetected:     return "Motion Detected";
-        case EventType::SensorReading:      return "Sensor Reading";
-        default:                            return "Unknown";
+        case EventType::PersonEnter :    return "Person Enter";
+        case EventType::PersonLeave :    return "Person Left";
+        default                     :    return "Unknown";
     }
 }
 

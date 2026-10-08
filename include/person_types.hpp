@@ -1,8 +1,7 @@
 #pragma once
 
 enum class PersonID {
-    Rishabh, Mummy, Daddy, Megan, Shreya,
-    COUNT
+    Rishabh, Mummy, Daddy, Megan, Shreya, Unknown
 };
 
 struct PersonMatch {

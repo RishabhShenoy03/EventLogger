@@ -3,10 +3,8 @@
 #include <string>
 
 enum class EventType {
-    MotionDetected,
-    SensorReading,
-    DeviceOnline,
-    DeviceOffline
+    PersonEnter,
+    PersonLeave,
 };
 
 struct Event {

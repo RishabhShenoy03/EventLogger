@@ -1,10 +1,3 @@
-#include "event_queue.hpp"
-#include "logger.hpp"
-#include "fake_sensor.hpp"
-#include "CameraCapture.hpp"
-#include "FaceProcessor.hpp"
-#include "FaceRegistry.hpp"
-
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -16,25 +9,44 @@
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
 
+#include "event_queue.hpp"
+#include "logger.hpp"
+#include "fake_sensor.hpp"
+#include "CameraCapture.hpp"
+#include "FaceProcessor.hpp"
+#include "FaceRegistry.hpp"
+
 int main() {
     CameraCapture camera{};
     FaceProcessor processor{};
-    FaceRegistry fellas{};
+    FaceRegistry registry{processor};
 
     EventQueue queue{};
     Logger logs{std::cout};
     FakeSensor fake_sensor{};
 
-    std::jthread producer([&camera, &processor] {
+    std::jthread producer([&queue, &camera, &registry, &processor] {
         while (true) {
+            std::optional<PersonMatch> id;
+
             cv::Mat frame = camera.capture();
             cv::Mat faces = processor.detect(frame);
             std::vector<cv::Mat> persons_spotted = processor.extract(frame, faces);
-            // something to recognise
+            for (const auto& person : persons_spotted) {
+                id = registry.match(person);
+                if (id.has_value()) {
+                    queue.push(Event{
+                        EventType::PersonEnter,
+                        "Producer Thread",
+                        std::chrono::system_clock::now(),
+                        registry.id_to_payload(*id)}
+                    );
+                }
+            }
         }
     });
 
-    std::jthread producer2([&fake_sensor, &queue] {
+    std::jthread producerfake([&fake_sensor, &queue] {
         while (true){
             auto opt_event = fake_sensor.sense_fake_event();
             if (opt_event.has_value()){
@@ -56,8 +68,6 @@ int main() {
             logs.log(*opt_event);
         }
     });
-
-
     
     return 0;
 }

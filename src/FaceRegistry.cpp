@@ -16,11 +16,13 @@
 
 #define MATCH_THRESHOLD 0.5
 
-FaceRegistry::FaceRegistry() {
+FaceRegistry::FaceRegistry(FaceProcessor& processor)
+    : processor_(processor)
+{
     enroll_persons();
 }
 
-std::optional<PersonID> FaceRegistry::convert_personID(const std::string& person_name) {
+PersonID FaceRegistry::stringToPersonID(const std::string& person_name) {
     if (person_name == "Rishabh") {
         return PersonID::Rishabh;
     }
@@ -36,7 +38,18 @@ std::optional<PersonID> FaceRegistry::convert_personID(const std::string& person
     if (person_name == "Shreya") {
         return PersonID::Shreya;
     }
-    return std::nullopt;
+    return PersonID::Unknown;
+}
+
+std::string FaceRegistry::personIDToString(const PersonID& personid) {
+    switch (personid) {
+        case PersonID::Rishabh  : return "Rishabh";
+        case PersonID::Daddy    : return "Daddy";
+        case PersonID::Megan    : return "Megan";
+        case PersonID::Mummy    : return "Mummy";
+        case PersonID::Shreya   : return "Shreya";
+        default                 : return "Unknown Person";
+    }
 }
 
 void FaceRegistry::enroll_persons() {
@@ -45,8 +58,8 @@ void FaceRegistry::enroll_persons() {
             continue;
         }
         const std::string person_name = person_dir.path().filename().string();
-        const std::optional<PersonID> person_id = convert_personID(person_name);
-        if (!person_id.has_value()) {
+        const PersonID person_id = stringToPersonID(person_name);
+        if (person_id == PersonID::Unknown) {
             continue;
         }
 
@@ -60,31 +73,48 @@ void FaceRegistry::enroll_persons() {
                 continue;
             }
 
-            cv::Mat faces  = processor.detect(pic);
+            cv::Mat faces  = processor_.detect(pic);
             if (faces.rows != 1) { // rej more than 1 face detected
                 continue;
             }
 
-            std::vector<cv::Mat> features = processor.extract(pic, faces);
+            std::vector<cv::Mat> features = processor_.extract(pic, faces);
             if (features.size() != 1){ // rej >1 face feature extracted
                 continue;
             }
 
-            registry_[*person_id].push_back(features.front());
+            registry_[person_id].push_back(features.front());
         }
     }
 }
 
 std::optional<PersonMatch> FaceRegistry::match(const cv::Mat& feature) {
-    
-    std::vector<double> match_scores;
-    match_scores.resize(std::size_t(PersonID::COUNT), 0);
+    if (feature.empty()) {
+        return std::nullopt;
+    }
+    PersonID best_id = PersonID::Unknown;
+    double best_similarity = -1;
 
     for (const auto& pair: registry_) {
         for (const cv::Mat& feature_enrolled: pair.second) {
-            double score = processor.similarity(feature, feature_enrolled);
-            if (score > )
+            if (feature_enrolled.empty()) {
+                continue;
+            }
+            double score = processor_.similarity(feature, feature_enrolled);
+            if (score > best_similarity){
+                best_id = pair.first;
+                best_similarity = score;
+            }
         }
     }
-    return std::nullopt;
+    if (best_similarity > MATCH_THRESHOLD) {
+        return PersonMatch{best_id, best_similarity};
+    }
+    return PersonMatch{PersonID::Unknown, 0.0};
 }
+
+std::string FaceRegistry::id_to_payload(const PersonMatch& match_info) {
+    return personIDToString(match_info.id) + "has entered ("
+        + std::to_string(match_info.similarity) + ")";
+}
+
