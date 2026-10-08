@@ -1,4 +1,5 @@
-#include <map>
+#pragma once
+#include <unordered_map>
 #include <vector>
 #include <filesystem>
 #include <stdexcept>
@@ -15,7 +16,7 @@
 
 struct FaceRegistry {
 public:
-    std::map<PersonID, std::vector<cv::Mat>> registry_;
+    std::unordered_map<PersonID, std::vector<cv::Mat>> registry_;
     const std::filesystem::path enrolled_imgs = std::string("/home/rish/Desktop/projects/EventLogger/featuremap_images");
     FaceProcessor processor{};
     

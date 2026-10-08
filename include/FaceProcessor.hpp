@@ -1,3 +1,5 @@
+#pragma once
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -16,5 +18,6 @@ public:
 
     FaceProcessor();
     cv::Mat detect(const cv::Mat& frame);
-    std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& img, const cv::Mat& faces);
+    std::vector<cv::Mat> extract(const cv::Mat& img, const cv::Mat& faces);
+    double similarity(cv::Mat feature_a, cv::Mat feature_b);
 };

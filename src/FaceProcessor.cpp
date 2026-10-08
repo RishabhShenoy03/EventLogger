@@ -16,8 +16,7 @@ FaceProcessor::FaceProcessor():
     )),
     recognizer_(cv::FaceRecognizerSF::create(
         sface_path, ""
-    )),
-    registry_(FaceRegistry::FaceRegistry()){}
+    )){}
 
 cv::Mat FaceProcessor::detect(const cv::Mat& frame) {
     if (frame.empty()){
@@ -51,3 +50,11 @@ std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& frame, const cv::Mat&
     }
     return features;
 }
+
+double FaceProcessor::similarity(cv::Mat feature_a, cv::Mat feature_b) {
+    return recognizer_->match(
+        feature_a,
+        feature_b,
+        cv::FaceRecognizerSF::DisType::FR_COSINE
+    );
+}   

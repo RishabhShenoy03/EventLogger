@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <filesystem>
 #include <optional>
@@ -13,6 +13,8 @@
 #include "FaceProcessor.hpp"
 #include "FaceRegistry.hpp"
 #include "person_types.hpp"
+
+#define MATCH_THRESHOLD 0.5
 
 FaceRegistry::FaceRegistry() {
     enroll_persons();
@@ -43,7 +45,7 @@ void FaceRegistry::enroll_persons() {
             continue;
         }
         const std::string person_name = person_dir.path().filename().string();
-        const std::optional<PersonID> person_id = FaceRegistry::convert_personID(person_name);
+        const std::optional<PersonID> person_id = convert_personID(person_name);
         if (!person_id.has_value()) {
             continue;
         }
@@ -73,8 +75,16 @@ void FaceRegistry::enroll_persons() {
     }
 }
 
-std::optional<PersonMatch> FaceRegistry::match(const cv::Mat& feature){
+std::optional<PersonMatch> FaceRegistry::match(const cv::Mat& feature) {
     
-    
+    std::vector<double> match_scores;
+    match_scores.resize(std::size_t(PersonID::COUNT), 0);
+
+    for (const auto& pair: registry_) {
+        for (const cv::Mat& feature_enrolled: pair.second) {
+            double score = processor.similarity(feature, feature_enrolled);
+            if (score > )
+        }
+    }
     return std::nullopt;
 }
