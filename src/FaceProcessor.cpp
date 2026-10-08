@@ -32,6 +32,12 @@ cv::Mat FaceProcessor::detect(const cv::Mat& frame) {
     return faces;
 }
 
+/*
+
+    For each face detected in an image, it stores their features
+    in a cv::Mat as part of a vector<cv::Mat>
+
+*/
 std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& frame, const cv::Mat& faces) {
     if (faces.empty()) {
         return std::vector<cv::Mat>{};
@@ -46,7 +52,7 @@ std::vector<cv::Mat> FaceProcessor::extract(const cv::Mat& frame, const cv::Mat&
 
         cv::Mat feature;
         recognizer_->feature(aligned_face, feature);
-        features.push_back(feature);
+        features.push_back(feature.clone());
     }
     return features;
 }

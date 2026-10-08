@@ -24,6 +24,6 @@ public:
     void enroll_persons();
     PersonID stringToPersonID(const std::string& person_name);
     std::string personIDToString(const PersonID& personid);
-    std::optional<PersonMatch> match(const cv::Mat& feature);
-    std::string id_to_payload(const PersonMatch& match_info);
+    PersonMatch match(const cv::Mat& feature);
+    std::string id_to_payload(const PersonMatch& match);
 };

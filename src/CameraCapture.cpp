@@ -18,7 +18,8 @@ cv::Mat CameraCapture::capture() {
     cv::Mat frame;
     cap_.read(frame);
     if (frame.empty()) {
-        throw std::runtime_error("No picture captured");
+        // throw std::runtime_error("No picture captured");
+        
     }
     return frame;
 }

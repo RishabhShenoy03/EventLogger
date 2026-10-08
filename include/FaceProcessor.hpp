@@ -9,11 +9,10 @@
 #include <opencv2/dnn.hpp>
 
 class FaceProcessor {
-    cv::Ptr<cv::FaceDetectorYN> detector_;
-    cv::Ptr<cv::FaceRecognizerSF> recognizer_;
     const std::string faceDet_model = "models/face_detection_yunet_2023mar.onnx";
     const std::string sface_path = "models/face_recognition_sface_2021dec.onnx";
-
+    cv::Ptr<cv::FaceDetectorYN> detector_;
+    cv::Ptr<cv::FaceRecognizerSF> recognizer_;
 public:
 
     FaceProcessor();

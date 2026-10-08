@@ -88,9 +88,9 @@ void FaceRegistry::enroll_persons() {
     }
 }
 
-std::optional<PersonMatch> FaceRegistry::match(const cv::Mat& feature) {
+PersonMatch FaceRegistry::match(const cv::Mat& feature) {
     if (feature.empty()) {
-        return std::nullopt;
+        return PersonMatch{PersonID::Unknown, 0.0};
     }
     PersonID best_id = PersonID::Unknown;
     double best_similarity = -1;
@@ -110,11 +110,14 @@ std::optional<PersonMatch> FaceRegistry::match(const cv::Mat& feature) {
     if (best_similarity > MATCH_THRESHOLD) {
         return PersonMatch{best_id, best_similarity};
     }
-    return PersonMatch{PersonID::Unknown, 0.0};
+    return PersonMatch{PersonID::Unknown, best_similarity};
 }
 
-std::string FaceRegistry::id_to_payload(const PersonMatch& match_info) {
-    return personIDToString(match_info.id) + "has entered ("
-        + std::to_string(match_info.similarity) + ")";
+std::string FaceRegistry::id_to_payload(const PersonMatch& match) {
+    // if (match.id == PersonID::Unknown) {
+    //     return "Unknown person has entered";
+    // }
+    return personIDToString(match.id) + " has entered ("
+        + std::to_string(match.similarity) + ")";
 }
 
