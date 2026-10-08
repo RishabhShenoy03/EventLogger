@@ -1,7 +1,7 @@
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include <filesystem>
-#include <stdexcept>
+#include <optional>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -9,22 +9,46 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
+
 #include "FaceProcessor.hpp"
 #include "FaceRegistry.hpp"
+#include "person_types.hpp"
 
 FaceRegistry::FaceRegistry() {
     enroll_persons();
 }
 
+std::optional<PersonID> FaceRegistry::convert_personID(const std::string& person_name) {
+    if (person_name == "Rishabh") {
+        return PersonID::Rishabh;
+    }
+    if (person_name == "Daddy") {
+        return PersonID:: Daddy;
+    }
+    if (person_name == "Mummy") {
+        return PersonID::Mummy;
+    }
+    if (person_name == "Megan") {
+        return PersonID::Megan;
+    }
+    if (person_name == "Shreya") {
+        return PersonID::Shreya;
+    }
+    return std::nullopt;
+}
+
 void FaceRegistry::enroll_persons() {
-    for (const auto& person_dir : std::filesystem::directory_iterator(enrol_imgs)) {
+    for (const auto& person_dir : std::filesystem::directory_iterator(enrolled_imgs)) {
         if (!person_dir.is_directory()) {
             continue;
         }
-        const auto person_path = person_dir.path();
-        const std::string person_name = person_path.filename().string();
+        const std::string person_name = person_dir.path().filename().string();
+        const std::optional<PersonID> person_id = FaceRegistry::convert_personID(person_name);
+        if (!person_id.has_value()) {
+            continue;
+        }
 
-        for (const auto& imgentry : std::filesystem::directory_iterator(person_path)) {
+        for (const auto& imgentry : std::filesystem::directory_iterator(person_dir.path())) {
             
             if (!imgentry.is_regular_file()){
                 continue;
@@ -43,7 +67,14 @@ void FaceRegistry::enroll_persons() {
             if (features.size() != 1){ // rej >1 face feature extracted
                 continue;
             }
-            registry_[person_id].push_back(features.front());
+
+            registry_[*person_id].push_back(features.front());
         }
     }
+}
+
+std::optional<PersonMatch> FaceRegistry::match(const cv::Mat& feature){
+    
+    
+    return std::nullopt;
 }
