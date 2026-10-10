@@ -7,7 +7,8 @@
 Logger::Logger(std::ostream& output): output_(output) {}
 
 std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
-    return std::format("{:%d-%m-%Y %H:%M:%S}", std::chrono::floor<std::chrono::seconds>(timestamp));
+    auto sgt = timestamp + std::chrono::hours{8};
+    return std::format("{:%d-%m-%Y %H:%M:%S} SGT", sgt);
 }
 
 std::string Logger::eventtypeToString(const EventType& type) {

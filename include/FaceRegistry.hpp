@@ -25,5 +25,6 @@ public:
     PersonID stringToPersonID(const std::string& person_name);
     std::string personIDToString(const PersonID& personid);
     PersonMatch match(const cv::Mat& feature);
-    std::string id_to_payload(const PersonMatch& match);
+    std::string person_enter_payload(const PersonMatch& match);
+    std::string person_leave_payload(const PersonID& personid);
 };

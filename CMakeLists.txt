@@ -75,7 +75,7 @@ target_link_libraries(event_gateway PRIVATE
 # Camera/model integration test.
 # Build it with the project, but run it manually on the Pi because it needs
 # a connected camera and the model files.
-# add_executable(camera_capture_test
-#     tests/camera_capture_test.cpp
-# )
-# target_link_libraries(camera_capture_test PRIVATE event_core)
+add_executable(camera_capture_test
+    tests/camera_capture_test.cpp
+)
+target_link_libraries(camera_capture_test PRIVATE event_core)

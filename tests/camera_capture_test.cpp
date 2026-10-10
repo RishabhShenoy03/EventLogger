@@ -1,3 +1,7 @@
+#include <iostream>
+#include <filesystem>
+#include <thread>
+#include <chrono>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -6,22 +10,15 @@
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
 
-#include <iostream>
-#include <filesystem>
-#include <thread>
-#include <chrono>
+#include "CameraCapture.hpp"
 
 int main() {
-    cv::VideoCapture cap("/dev/video0", cv::CAP_V4L2);
-    if (!cap.isOpened()){
-        std::cerr << "No camera open";
-        return -1;
-    }
+    CameraCapture cap{};
 
     cv::Mat frame;
     std::size_t frame_count = 0;
     
-    const std::filesystem::path capture_dir{"captures"};
+    const std::filesystem::path capture_dir{"captures2"};
     std::filesystem::remove_all(capture_dir);
     std::filesystem::create_directories(capture_dir);
 
@@ -29,12 +26,14 @@ int main() {
 
     while (frame_count < 20) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        cap >> frame; // grab next frame
+        auto frame = cap.capture();; // grab next frame
 
         if (frame.empty()) {
             std::cout << "End of video stream\n";
             break;
         }
+
+        std::cout << "Frame: " << frame.cols << "x" << frame.rows << '\n';
 
         // build filename with frame count
         std::string filename = std::string(capture_dir) + std::string("/frame")
@@ -52,7 +51,7 @@ int main() {
         frame_count++;
     }
 
-    cap.release();
+    // cap.release();
     cv::destroyAllWindows();
 
     // initialise model path

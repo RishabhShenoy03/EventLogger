@@ -113,7 +113,7 @@ PersonMatch FaceRegistry::match(const cv::Mat& feature) {
     return PersonMatch{PersonID::Unknown, best_similarity};
 }
 
-std::string FaceRegistry::id_to_payload(const PersonMatch& match) {
+std::string FaceRegistry::person_enter_payload(const PersonMatch& match) {
     // if (match.id == PersonID::Unknown) {
     //     return "Unknown person has entered";
     // }
@@ -121,3 +121,9 @@ std::string FaceRegistry::id_to_payload(const PersonMatch& match) {
         + std::to_string(match.similarity) + ")";
 }
 
+std::string FaceRegistry::person_leave_payload(const PersonID& personid) {
+    // if (match.id == PersonID::Unknown) {
+    //     return "Unknown person has entered";
+    // }
+    return personIDToString(personid) + " has left";
+}
