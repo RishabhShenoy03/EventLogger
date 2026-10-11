@@ -14,8 +14,9 @@ CameraCapture::CameraCapture(): cap_("/dev/video0", cv::CAP_V4L2) {
     }
 
     cap_.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-    cap_.set(cv::CAP_PROP_FRAME_WIDTH, 1024);
-    cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 768);
+    cap_.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+    cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+    cap_.set(cv::CAP_PROP_FPS, 30);
 
     std::cerr << "Camera mode: "
               << cap_.get(cv::CAP_PROP_FRAME_WIDTH) << "x"

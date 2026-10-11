@@ -4,6 +4,7 @@
 #include <chrono>
 #include <csignal>
 #include <fstream>
+#include <optional>
 #include <unordered_map>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
@@ -34,7 +35,7 @@ int main() {
     FaceProcessor processor{};
     FaceRegistry registry{processor};
 
-    std::ofstream logfile{"outputs/events.log", std::ios::app};
+    std::ofstream logfile{"outputs/events.log"};
 
     EventQueue queue{};
     Logger logs{logfile};
@@ -47,8 +48,10 @@ int main() {
 
         std::unordered_map<PersonID, Clock::time_point> inside_room;
         std::optional<Clock::time_point> pending_unknown_since;
+        std::optional<Clock::time_point> last_entry_logged;
 
-        const auto time_absence = std::chrono::seconds{8};
+        const auto time_absence = std::chrono::seconds{30};
+        const auto time_debounce = std::chrono::seconds{12};
         const auto unknown_limit = std::chrono::seconds{3};
 
         while (!stop.stop_requested()) {
@@ -62,7 +65,7 @@ int main() {
 
             auto now = Clock::now();
             
-            // Erase stale entries (>8 seconds)
+            // Erase stale entries (>30 seconds)
             for (auto it = inside_room.begin(); it != inside_room.end(); ) {
                 if (now - it->second > time_absence) {
                     queue.push(Event{
@@ -83,33 +86,40 @@ int main() {
                 PersonMatch match = registry.match(person);
 
                 if (match.id != PersonID::Unknown) { // known person detected
-                    if (inside_room.find(match.id) == inside_room.end()) { // not inside room yet
+                    if (inside_room.find(match.id) == inside_room.end()
+                        && now - *last_entry_logged >= time_debounce) { // not inside room yet
                         queue.push(Event{
                             EventType::PersonEnter,
                             "Producer Thread",
                             Sysclock::now(),
                             registry.person_enter_payload(match)
                         });
+                        last_entry_logged = now;
                     }
-                    inside_room[match.id] = Clock::now(); // update time of last seen
+                    inside_room[match.id] = now; // update time of last seen;
                 }
                 else { // unknown person detected
-                    if (!pending_unknown_since.has_value() && inside_room.find(match.id) == inside_room.end()) { // no recent unknown person detected yet, so flag it first
-                        pending_unknown_since = now;
+                    if (inside_room.find(match.id) != inside_room.end()) { // unknown already inside map
+                        inside_room[PersonID::Unknown] = now;
                         continue;   
                     }
 
-                    if (now - *pending_unknown_since >= unknown_limit) {  // more than 3s since unknown detected, still unknown
-                        if (inside_room.find(match.id) == inside_room.end()) { // not inside map yet == needs to be announced as event
-                            pending_unknown_since.reset();
-                            queue.push(Event{
-                                EventType::PersonEnter,
-                                "Producer Thread",
-                                Sysclock::now(),
-                                registry.person_enter_payload(match)
-                            });
-                        }
-                        inside_room[match.id] = Clock::now(); // update last seen
+                    if (!pending_unknown_since.has_value()) {
+                        pending_unknown_since = now;
+                        continue;
+                    }
+
+                    if (now - *pending_unknown_since >= unknown_limit
+                        && now - *last_entry_logged >= time_debounce) {  // more than 3s since unknown detected, still unknown
+                        queue.push(Event{
+                            EventType::PersonEnter,
+                            "Producer Thread",
+                            Sysclock::now(),
+                            registry.person_enter_payload(match)
+                        });
+                        inside_room[PersonID::Unknown] = now; // update last seen
+                        pending_unknown_since.reset();
+                        last_entry_logged = now;
                     }
                 }
             }

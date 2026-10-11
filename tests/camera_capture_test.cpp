@@ -37,7 +37,7 @@ int main() {
 
         // build filename with frame count
         std::string filename = std::string(capture_dir) + std::string("/frame")
-                            + std::to_string(frame_count) + ".png";
+                            + std::to_string(frame_count) + ".jpg";
 
         // true if successfully saved to disk
         bool is_saved = cv::imwrite(filename, frame);
@@ -69,8 +69,8 @@ int main() {
     );
 
     for (std::size_t i = 0; i < frame_count; i++) {
-        std::string img_path = std::string("captures/frame") + std::to_string(i)
-                            + std::string(".png");
+        std::string img_path = std::string("captures2/frame") + std::to_string(i)
+                            + std::string(".jpg");
         cv::Mat img = cv::imread(img_path);
         
         if (img.empty()){

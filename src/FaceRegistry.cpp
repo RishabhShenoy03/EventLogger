@@ -74,6 +74,7 @@ void FaceRegistry::enroll_persons() {
             }
 
             cv::Mat faces  = processor_.detect(pic);
+            std::cerr << imgentry.path() << " → " << faces.rows << " faces\n";
             if (faces.rows != 1) { // rej more than 1 face detected
                 continue;
             }
@@ -86,6 +87,8 @@ void FaceRegistry::enroll_persons() {
             registry_[person_id].push_back(features.front());
         }
     }
+
+    std::cout << "Enroll done\n";
 }
 
 PersonMatch FaceRegistry::match(const cv::Mat& feature) {
