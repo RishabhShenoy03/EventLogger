@@ -18,6 +18,7 @@
 #include "CameraCapture.hpp"
 #include "FaceProcessor.hpp"
 #include "FaceRegistry.hpp"
+#include "person_types.hpp"
 
 using Clock = std::chrono::steady_clock;
 using Sysclock = std::chrono::system_clock;
@@ -45,12 +46,19 @@ int main() {
     {
 
         std::unordered_map<PersonID, Clock::time_point> inside_room;
+        std::optional<Clock::time_point> pending_unknown_since;
+
         const auto time_absence = std::chrono::seconds{8};
+        const auto unknown_limit = std::chrono::seconds{3};
 
         while (!stop.stop_requested()) {
             cv::Mat frame = camera.capture();
             cv::Mat faces = processor.detect(frame);
             std::vector<cv::Mat> persons_spotted = processor.extract(frame, faces);
+
+            if (persons_spotted.empty()) {
+                pending_unknown_since.reset();
+            }
 
             auto now = Clock::now();
             
@@ -71,16 +79,39 @@ int main() {
             }
 
             for (const auto& person : persons_spotted) {
+
                 PersonMatch match = registry.match(person);
-                if (inside_room.find(match.id) == inside_room.end()) {
-                    queue.push(Event{
-                        EventType::PersonEnter,
-                        "Producer Thread",
-                        Sysclock::now(),
-                        registry.person_enter_payload(match)
-                    });
+
+                if (match.id != PersonID::Unknown) { // known person detected
+                    if (inside_room.find(match.id) == inside_room.end()) { // not inside room yet
+                        queue.push(Event{
+                            EventType::PersonEnter,
+                            "Producer Thread",
+                            Sysclock::now(),
+                            registry.person_enter_payload(match)
+                        });
+                    }
+                    inside_room[match.id] = Clock::now(); // update time of last seen
                 }
-                inside_room[match.id] = Clock::now();
+                else { // unknown person detected
+                    if (!pending_unknown_since.has_value() && inside_room.find(match.id) == inside_room.end()) { // no recent unknown person detected yet, so flag it first
+                        pending_unknown_since = now;
+                        continue;   
+                    }
+
+                    if (now - *pending_unknown_since >= unknown_limit) {  // more than 3s since unknown detected, still unknown
+                        if (inside_room.find(match.id) == inside_room.end()) { // not inside map yet == needs to be announced as event
+                            pending_unknown_since.reset();
+                            queue.push(Event{
+                                EventType::PersonEnter,
+                                "Producer Thread",
+                                Sysclock::now(),
+                                registry.person_enter_payload(match)
+                            });
+                        }
+                        inside_room[match.id] = Clock::now(); // update last seen
+                    }
+                }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }

@@ -114,9 +114,9 @@ PersonMatch FaceRegistry::match(const cv::Mat& feature) {
 }
 
 std::string FaceRegistry::person_enter_payload(const PersonMatch& match) {
-    // if (match.id == PersonID::Unknown) {
-    //     return "Unknown person has entered";
-    // }
+    if (match.id == PersonID::Unknown) {
+        return "Unknown person has entered";
+    }
     return personIDToString(match.id) + " has entered ("
         + std::to_string(match.similarity) + ")";
 }
