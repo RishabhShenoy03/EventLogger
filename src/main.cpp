@@ -6,6 +6,7 @@
 #include <fstream>
 #include <optional>
 #include <unordered_map>
+#include <cstdlib>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -37,15 +38,20 @@ int main() {
 
     std::ofstream logfile{"outputs/events.log"};
 
+    const char* token = std::getenv("TGBOT_API_KEY");
+    if (token == nullptr || *token == '\0') {
+        std::cerr << "TGBOT_BOT_TOKEN is not set\n";
+        return 1;
+    }
+
     EventQueue queue{};
-    Logger logs{logfile};
+    Logger logs{logfile, token};
 
     std::signal(SIGINT, request_shutdown);
     std::signal(SIGTERM, request_shutdown);
 
     std::jthread producer([&queue, &camera, &registry, &processor] (std::stop_token stop)
     {
-
         std::unordered_map<PersonID, Clock::time_point> inside_room;
         std::optional<Clock::time_point> pending_unknown_since;
         std::optional<Clock::time_point> last_entry_logged;
@@ -130,7 +136,7 @@ int main() {
             if (!saw_unknown) {
                 pending_unknown_since.reset();
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
         }
         queue.close();
     });

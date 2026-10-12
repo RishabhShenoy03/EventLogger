@@ -16,8 +16,6 @@ find_package(OpenCV REQUIRED COMPONENTS
 )
 
 find_package(TgBot CONFIG REQUIRED)
-add_executable(bot_example main.cpp)
-target_link_libraries(bot_example PRIVATE TgBot::TgBot)
 
 # Reusable project code
 add_library(event_core
@@ -26,7 +24,6 @@ add_library(event_core
     src/CameraCapture.cpp
     src/FaceProcessor.cpp
     src/FaceRegistry.cpp
-    src/TelegramClient.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)
@@ -37,6 +34,7 @@ target_include_directories(event_core PUBLIC
 
 )
 target_link_libraries(event_core PUBLIC ${OpenCV_LIBS})
+target_link_libraries(event_core PUBLIC TgBot::TgBot)
 
 target_compile_options(event_core PRIVATE
     -Wall
@@ -85,3 +83,9 @@ add_executable(camera_capture_test
     tests/camera_capture_test.cpp
 )
 target_link_libraries(camera_capture_test PRIVATE event_core)
+
+add_executable(tele_test
+    tests/tele_test.cpp
+)
+
+target_link_libraries(tele_test PRIVATE TgBot::TgBot)

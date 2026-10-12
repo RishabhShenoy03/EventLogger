@@ -14,7 +14,7 @@
 #include "FaceRegistry.hpp"
 #include "person_types.hpp"
 
-#define MATCH_THRESHOLD 0.5
+#define MATCH_THRESHOLD 0.6
 
 FaceRegistry::FaceRegistry(FaceProcessor& processor)
     : processor_(processor)
@@ -22,7 +22,7 @@ FaceRegistry::FaceRegistry(FaceProcessor& processor)
     enroll_persons();
 }
 
-PersonID FaceRegistry::stringToPersonID(const std::string& person_name) {
+[[nodiscard]] PersonID FaceRegistry::stringToPersonID(const std::string& person_name) {
     if (person_name == "Rishabh") {
         return PersonID::Rishabh;
     }
@@ -41,7 +41,7 @@ PersonID FaceRegistry::stringToPersonID(const std::string& person_name) {
     return PersonID::Unknown;
 }
 
-std::string FaceRegistry::personIDToString(const PersonID& personid) {
+[[nodiscard]] std::string FaceRegistry::personIDToString(const PersonID& personid) {
     switch (personid) {
         case PersonID::Rishabh  : return "Rishabh";
         case PersonID::Daddy    : return "Daddy";
@@ -91,7 +91,7 @@ void FaceRegistry::enroll_persons() {
     std::cout << "Enroll done\n";
 }
 
-PersonMatch FaceRegistry::match(const cv::Mat& feature) {
+[[nodiscard]] PersonMatch FaceRegistry::match(const cv::Mat& feature) {
     if (feature.empty()) {
         return PersonMatch{PersonID::Unknown, 0.0};
     }
@@ -116,7 +116,7 @@ PersonMatch FaceRegistry::match(const cv::Mat& feature) {
     return PersonMatch{PersonID::Unknown, best_similarity};
 }
 
-std::string FaceRegistry::person_enter_payload(const PersonMatch& match) {
+[[nodiscard]] std::string FaceRegistry::person_enter_payload(const PersonMatch& match) {
     if (match.id == PersonID::Unknown) {
         return "Unknown person has entered";
     }
@@ -124,7 +124,7 @@ std::string FaceRegistry::person_enter_payload(const PersonMatch& match) {
         + std::to_string(match.similarity) + ")";
 }
 
-std::string FaceRegistry::person_leave_payload(const PersonID& personid) {
+[[nodiscard]] std::string FaceRegistry::person_leave_payload(const PersonID& personid) {
     // if (match.id == PersonID::Unknown) {
     //     return "Unknown person has entered";
     // }

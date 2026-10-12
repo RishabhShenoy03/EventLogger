@@ -28,7 +28,7 @@ cv::Mat FaceProcessor::detect(const cv::Mat& frame) {
     cv::Mat faces; // detects from frame, saved into detection results
     detector_->detect(frame, faces);
 
-    std::cout << "Faces detected: " << faces.rows << std::endl;
+    // std::cout << "Faces detected: " << faces.rows << std::endl;
     return faces;
 }
 
