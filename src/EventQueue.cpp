@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "event_queue.hpp"
+#include "EventQueue.hpp"
 
 [[nodiscard]] std::size_t EventQueue::size() const {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -52,7 +52,7 @@ bool EventQueue::push(const Event& event){
         events_.push_back(event);
     }
     
-    cond_.notify_one(); // wake a waiting consumer (logger)
+    cond_.notify_one(); // wake a waiting consumer (Logger)
     return true;
 }
 
@@ -62,5 +62,5 @@ void EventQueue::close() {
         closed_ = true;
         lock.unlock();
     }
-    cond_.notify_all(); // wake all waiting consumers (loggers)
+    cond_.notify_all(); // wake all waiting consumers (Loggers)
 }

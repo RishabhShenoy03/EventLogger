@@ -2,8 +2,8 @@
 #include <sstream>
 #include <array>
 
-#include "event_queue.hpp"
-#include "logger.hpp"
+#include "EventQueue.hpp"
+#include "Logger.hpp"
 #include "fake_sensor.hpp"
 
 int main() {
@@ -61,7 +61,7 @@ int main() {
     assert(queue.empty());
     assert(!queue.try_pop()); // std::nullopt expected
 
-    // Check logger
+    // Check Logger
 
     std::string output_str = output.str();
 

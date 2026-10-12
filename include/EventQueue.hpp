@@ -6,7 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "event.hpp"
+#include "Event.hpp"
 
 class EventQueue {
 

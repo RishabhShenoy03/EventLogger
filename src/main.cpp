@@ -14,8 +14,8 @@
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
 
-#include "event_queue.hpp"
-#include "logger.hpp"
+#include "EventQueue.hpp"
+#include "Logger.hpp"
 #include "CameraCapture.hpp"
 #include "FaceProcessor.hpp"
 #include "FaceRegistry.hpp"
@@ -59,10 +59,6 @@ int main() {
             cv::Mat faces = processor.detect(frame);
             std::vector<cv::Mat> persons_spotted = processor.extract(frame, faces);
 
-            if (persons_spotted.empty()) {
-                pending_unknown_since.reset();
-            }
-
             auto now = Clock::now();
             
             // Erase stale entries (>30 seconds)
@@ -81,36 +77,44 @@ int main() {
                 }
             }
 
+            bool saw_unknown = false;
+
             for (const auto& person : persons_spotted) {
-
                 PersonMatch match = registry.match(person);
-
-                if (match.id != PersonID::Unknown) { // known person detected
-                    if (inside_room.find(match.id) == inside_room.end()
-                        && now - *last_entry_logged >= time_debounce) { // not inside room yet
+                
+                if (match.id != PersonID::Unknown) {    // known person detected
+                    auto it = inside_room.find(match.id);
+                    if (it != inside_room.end()) { // if map contains the same person already, update last seen
+                        it->second = now;
+                    }
+                    else if (!last_entry_logged || now - *last_entry_logged >= time_debounce) { // if not inside, add to map, push event, set last_entry_logged
                         queue.push(Event{
                             EventType::PersonEnter,
                             "Producer Thread",
                             Sysclock::now(),
                             registry.person_enter_payload(match)
                         });
+                        inside_room[match.id] = now; // only insert when not within the debounce time limit
                         last_entry_logged = now;
                     }
-                    inside_room[match.id] = now; // update time of last seen;
                 }
                 else { // unknown person detected
+                    saw_unknown = true;
                     if (inside_room.find(match.id) != inside_room.end()) { // unknown already inside map
                         inside_room[PersonID::Unknown] = now;
                         continue;   
                     }
 
+                    // first time unknown spotted, set unknown spot time to check against in 3 seconds
                     if (!pending_unknown_since.has_value()) {
                         pending_unknown_since = now;
                         continue;
                     }
 
+                    // more than 3s since unknown detected, still unknown being detected
+                    // Also outside of debounce limit
                     if (now - *pending_unknown_since >= unknown_limit
-                        && now - *last_entry_logged >= time_debounce) {  // more than 3s since unknown detected, still unknown
+                        && (!last_entry_logged || now - *last_entry_logged >= time_debounce)) {
                         queue.push(Event{
                             EventType::PersonEnter,
                             "Producer Thread",
@@ -122,6 +126,9 @@ int main() {
                         last_entry_logged = now;
                     }
                 }
+            }
+            if (!saw_unknown) {
+                pending_unknown_since.reset();
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }

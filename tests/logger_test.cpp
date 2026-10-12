@@ -2,7 +2,7 @@
 #include <chrono>
 #include <sstream>
 
-#include "logger.hpp"
+#include "Logger.hpp"
 
 int main() {
     std::ostringstream captured_output;

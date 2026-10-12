@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(EventLogger LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 23)
 
 enable_testing()
 
@@ -14,13 +15,18 @@ find_package(OpenCV REQUIRED COMPONENTS
     dnn
 )
 
+find_package(TgBot CONFIG REQUIRED)
+add_executable(bot_example main.cpp)
+target_link_libraries(bot_example PRIVATE TgBot::TgBot)
+
 # Reusable project code
 add_library(event_core
-    src/event_queue.cpp
-    src/logger.cpp
+    src/EventQueue.cpp
+    src/Logger.cpp
     src/CameraCapture.cpp
     src/FaceProcessor.cpp
     src/FaceRegistry.cpp
+    src/TelegramClient.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)
@@ -54,17 +60,17 @@ target_link_libraries(event_gateway PRIVATE
 # target_link_libraries(pipeline_test PRIVATE event_core)
 # add_test(NAME pipeline_test COMMAND pipeline_test)
 
-# add_executable(event_queue_test
-#     tests/event_queue_test.cpp
+# add_executable(EventQueue_test
+#     tests/EventQueue_test.cpp
 # )
-# target_link_libraries(event_queue_test PRIVATE event_core)
-# add_test(NAME event_queue_test COMMAND event_queue_test)
+# target_link_libraries(EventQueue_test PRIVATE event_core)
+# add_test(NAME EventQueue_test COMMAND EventQueue_test)
 
-# add_executable(logger_test
-#     tests/logger_test.cpp
+# add_executable(Logger_test
+#     tests/Logger_test.cpp
 # )
-# target_link_libraries(logger_test PRIVATE event_core)
-# add_test(NAME logger_test COMMAND logger_test)
+# target_link_libraries(Logger_test PRIVATE event_core)
+# add_test(NAME Logger_test COMMAND Logger_test)
 
 # add_executable(fake_sensor_test
 #     tests/fake_sensor_test.cpp

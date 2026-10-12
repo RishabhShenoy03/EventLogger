@@ -2,7 +2,7 @@
 
 #include <ostream>
 
-#include "event.hpp"
+#include "Event.hpp"
 
 class Logger{
 

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <format>
 
-#include "logger.hpp"
+#include "Logger.hpp"
 
 Logger::Logger(std::ostream& output): output_(output) {}
 

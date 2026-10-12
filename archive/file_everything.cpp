@@ -3,8 +3,8 @@
 #include <thread>
 
 #include "event.hpp"
-#include "event_queue.hpp"
-#include "logger.hpp"
+#include "EventQueue.hpp"
+#include "Logger.hpp"
 #include "fake_sensor.hpp"
 
 int main() {
@@ -33,7 +33,7 @@ int main() {
             }
         }); 
 
-        std::jthread logger_thread([&logs, &queue]{
+        std::jthread Logger_thread([&logs, &queue]{
             while (true) {
                 auto opt_event = queue.wait_and_pop();  // waits if no events yet
                 if (!opt_event.has_value()) {           // when queue is closed and empty
