@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <tgbot/tgbot.h>
+#include <algorithm>
 
 #include "TeleNotifier.hpp"
 #include "Event.hpp"
@@ -15,10 +16,13 @@ void TeleNotifier::long_poll() {
     bot_.getEvents().onCommand("start", [this](std::shared_ptr<TgBot::Message> message) {
         bot_.getApi().sendMessage(message->chat->id, "Hi!");
         std::scoped_lock lock(mutex_);
-        chat_id_list_.push_back(message->chat->id);
+        if (std::ranges::find(chat_id_list_, message->chat->id) == chat_id_list_.end()) {
+            chat_id_list_.push_back(message->chat->id);
+        }
     });
 
     bot_.getEvents().onCommand("status", [this](std::shared_ptr<TgBot::Message> message) {
+        std::scoped_lock lock(mutex_);
         bot_.getApi().sendMessage(message->chat->id, logs_.get_latest());
     });
 
@@ -32,6 +36,7 @@ void TeleNotifier::long_poll() {
 }
 
 void TeleNotifier::send_notif(const std::string& formatted_event) {
+    std::scoped_lock lock(mutex_);
     for (auto chat_id : chat_id_list_) {
         bot_.getApi().sendMessage(chat_id, formatted_event);
     }

@@ -4,7 +4,8 @@
 #include <tgbot/tgbot.h>
 #include "Logger.hpp"
 
-Logger::Logger(std::ostream& output): output_(output) {}
+Logger::Logger(std::ostream& output)
+    : output_(output), event_count_{0}, latest_event_(""){}
 
 [[nodiscard]] std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
     auto sgt = timestamp + std::chrono::hours{8};
@@ -30,9 +31,13 @@ Logger::Logger(std::ostream& output): output_(output) {}
 void Logger::log_event(const std::string& formatted_string) {
     output_ << (formatted_string);
     latest_event_ = formatted_string;
+    event_count_++;
 }
 
 [[nodiscard]] std::string Logger::get_latest() {
+    if (!event_count_) {
+        return std::string("No events logged yet"); 
+    }
     return latest_event_;
 }
 

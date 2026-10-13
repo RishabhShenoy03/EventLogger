@@ -11,7 +11,7 @@ class Logger{
 private:
     std::ostream& output_;
     std::string latest_event_;
-    std::size_t event_count_;
+    std::size_t event_count_ = 0;
 public:
     Logger(std::ostream& output);
     [[nodiscard]] static std::string eventtypeToString(const EventType& type);
