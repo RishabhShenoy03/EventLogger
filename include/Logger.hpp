@@ -16,11 +16,11 @@ private:
     std::mutex mutex_;
 public:
     Logger(std::ostream& output);
-    [[nodiscard]] static std::string eventtypeToString(const EventType& type);
-    [[nodiscard]] static std::string timeToString(const std::chrono::system_clock::time_point& timestamp);
-    [[nodiscard]] static std::string format_event(const Event& event);
+    [[nodiscard]] std::string eventtypeToString(const EventType& type);
+    [[nodiscard]] std::string timeToString(const std::chrono::system_clock::time_point& timestamp);
+    [[nodiscard]] std::string format_event(const Event& event);
     void log_event(const std::string& formatted_string);
     [[nodiscard]] std::string get_latest();
-    void set_latest(const std::string& latest);
+    [[maybe_unused]] void set_latest(const std::string& latest);
     [[nodiscard]] std::size_t get_count();
 };
