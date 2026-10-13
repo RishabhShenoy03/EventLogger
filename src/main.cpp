@@ -143,15 +143,20 @@ int main() {
         queue.close();
     });
 
-    std::jthread consumer([&logs, &queue] {
+    std::jthread consumer([&logs, &queue, &telenotif] {
         while (true) {
             auto opt_event = queue.wait_and_pop();
             if (!opt_event.has_value()) {
                 break;
             }
-            logs.log(*opt_event);
-            telenotif.send_notif(*opt_event);
+            std::string formatted_event = logs.format_event(*opt_event);
+            logs.log_event(formatted_event);
+            telenotif.send_notif(formatted_event);
         }
+    });
+
+    std::jthread telebot([&telenotif] {
+        telenotif.long_poll();
     });
 
     while (!shutdown_requested) {

@@ -11,9 +11,9 @@
 class TeleNotifier {
     std::vector<std::int64_t> chat_id_list_;
     TgBot::Bot bot_;
-    const std::string token_;
 
 public:
-    TeleNotifier();
-    void send_notif(const Event& event);
+    TeleNotifier(const char* token);
+    void long_poll();
+    void send_notif(const std::string& formatted_event);
 };

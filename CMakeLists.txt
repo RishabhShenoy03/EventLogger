@@ -32,8 +32,8 @@ target_compile_features(event_core PUBLIC cxx_std_23)
 target_include_directories(event_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-
 )
+
 target_link_libraries(event_core PUBLIC ${OpenCV_LIBS})
 target_link_libraries(event_core PUBLIC TgBot::TgBot)
 
