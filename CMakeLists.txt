@@ -24,6 +24,7 @@ add_library(event_core
     src/CameraCapture.cpp
     src/FaceProcessor.cpp
     src/FaceRegistry.cpp
+    src/TeleNotifier.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)

@@ -21,6 +21,7 @@
 #include "FaceProcessor.hpp"
 #include "FaceRegistry.hpp"
 #include "person_types.hpp"
+#include "TeleNotifier.hpp"
 
 using Clock = std::chrono::steady_clock;
 using Sysclock = std::chrono::system_clock;

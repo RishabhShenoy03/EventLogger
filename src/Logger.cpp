@@ -6,12 +6,12 @@
 
 Logger::Logger(std::ostream& output): output_(output) {}
 
-[[nodiscard]] std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
+[[nodiscard]] static std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
     auto sgt = timestamp + std::chrono::hours{8};
     return std::format("{:%d-%m-%Y %H:%M:%S} SGT", sgt);
 }
 
-[[nodiscard]] std::string Logger::eventtypeToString(const EventType& type) {
+[[nodiscard]] static std::string Logger::eventtypeToString(const EventType& type) {
     switch (type) {
         case EventType::PersonEnter :    return "Person Enter";
         case EventType::PersonLeave :    return "Person Left";

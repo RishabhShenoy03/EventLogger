@@ -14,6 +14,6 @@ class TeleNotifier {
     const std::string token_;
 
 public:
-    TeleNotifier() : bot(TgBot::Bot(token));
+    TeleNotifier();
     void send_notif(const Event& event);
 };
