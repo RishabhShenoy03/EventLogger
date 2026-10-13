@@ -1,11 +1,12 @@
 #include <chrono>
 #include <iostream>
 #include <format>
+#include <mutex>
+#include <thread>
 #include <tgbot/tgbot.h>
 #include "Logger.hpp"
 
-Logger::Logger(std::ostream& output)
-    : output_(output), event_count_{0}, latest_event_(""){}
+Logger::Logger(std::ostream& output): output_(output) {}
 
 [[nodiscard]] std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
     auto sgt = timestamp + std::chrono::hours{8};
@@ -30,21 +31,25 @@ Logger::Logger(std::ostream& output)
 
 void Logger::log_event(const std::string& formatted_string) {
     output_ << (formatted_string);
+    std::scoped_lock lock(mutex_);
     latest_event_ = formatted_string;
     event_count_++;
 }
 
 [[nodiscard]] std::string Logger::get_latest() {
+    std::scoped_lock lock(mutex_);
     if (!event_count_) {
         return std::string("No events logged yet"); 
     }
     return latest_event_;
 }
 
-void Logger::set_latest(const std::string& latest) {
+[[maybe_unused]] void Logger::set_latest(const std::string& latest) {
+    std::scoped_lock lock(mutex_);
     latest_event_ = latest;
 }
 
 [[nodiscard]] std::size_t Logger::get_count() {
+    std::scoped_lock lock(mutex_);
     return event_count_;
 }

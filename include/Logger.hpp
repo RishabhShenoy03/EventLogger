@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <string>
+#include <mutex>
 #include <tgbot/tgbot.h>
 
 #include "Event.hpp"
@@ -10,8 +11,9 @@ class Logger{
 
 private:
     std::ostream& output_;
-    std::string latest_event_;
+    std::string latest_event_ = "";
     std::size_t event_count_ = 0;
+    std::mutex mutex_;
 public:
     Logger(std::ostream& output);
     [[nodiscard]] static std::string eventtypeToString(const EventType& type);

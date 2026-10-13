@@ -7,6 +7,7 @@
 #include <optional>
 #include <unordered_map>
 #include <cstdlib>
+#include <stop_token>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -155,8 +156,8 @@ int main() {
         }
     });
 
-    std::jthread telebot([&logs, &telenotif] {
-        telenotif.long_poll();
+    std::jthread telebot([&telenotif](std::stop_token stop) {
+        telenotif.long_poll(stop);
     });
 
     while (!shutdown_requested) {
@@ -164,7 +165,11 @@ int main() {
     }
 
     producer.request_stop();
+    telebot.request_stop();
+
     producer.join();
+    consumer.join();
+    telebot.join();
    
     return 0;
 }

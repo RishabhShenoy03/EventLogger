@@ -12,7 +12,7 @@
 TeleNotifier::TeleNotifier(const char* token, Logger& logs)
     : bot_(TgBot::Bot(token)), logs_(logs) {}
 
-void TeleNotifier::long_poll() {
+void TeleNotifier::long_poll(std::stop_token stop) {
     bot_.getEvents().onCommand("start", [this](std::shared_ptr<TgBot::Message> message) {
         bot_.getApi().sendMessage(message->chat->id, "Hi!");
         std::scoped_lock lock(mutex_);
@@ -28,8 +28,10 @@ void TeleNotifier::long_poll() {
 
     try {
         std::cout << "Bot username: " << bot_.getApi().getMe()->username.value_or("") << std::endl;
-        TgBot::TgLongPoll longPoll(bot_);
-        longPoll.startLoop();
+        TgBot::TgLongPoll longPoll(bot_, 100, 2);
+        while (!stop.stop_requested()) {
+            longPoll.start();
+        }
     } catch (const TgBot::TgException& e) {
         std::cout << "error: " << e.what() << std::endl;
     }
@@ -38,6 +40,10 @@ void TeleNotifier::long_poll() {
 void TeleNotifier::send_notif(const std::string& formatted_event) {
     std::scoped_lock lock(mutex_);
     for (auto chat_id : chat_id_list_) {
-        bot_.getApi().sendMessage(chat_id, formatted_event);
+        try {
+            bot_.getApi().sendMessage(chat_id, formatted_event);
+        } catch (const TgBot::TgException& e) {
+            std::cout << "error: " << e.what() << std::endl;
+        }
     }
 }

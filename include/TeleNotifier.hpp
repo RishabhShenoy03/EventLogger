@@ -6,6 +6,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <stop_token>
 #include <tgbot/tgbot.h>
 
 #include "Event.hpp"
@@ -19,6 +20,6 @@ class TeleNotifier {
 
 public:
     TeleNotifier(const char* token, Logger& logs);
-    void long_poll();
+    void long_poll(std::stop_token stop);
     void send_notif(const std::string& formatted_event);
 };
