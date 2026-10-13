@@ -45,7 +45,8 @@ int main() {
     }
 
     EventQueue queue{};
-    Logger logs{logfile, token};
+    Logger logs{logfile};
+    TeleNotifier telenotif {token};
 
     std::signal(SIGINT, request_shutdown);
     std::signal(SIGTERM, request_shutdown);
@@ -148,6 +149,7 @@ int main() {
                 break;
             }
             logs.log(*opt_event);
+            telenotif.send_notif(*opt_event);
         }
     });
 

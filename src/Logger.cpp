@@ -4,8 +4,7 @@
 #include <tgbot/tgbot.h>
 #include "Logger.hpp"
 
-Logger::Logger(std::ostream& output, const std::string& token)
-: output_(output), token_(token), bot(TgBot::Bot(token_)) {}
+Logger::Logger(std::ostream& output): output_(output) {}
 
 [[nodiscard]] std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
     auto sgt = timestamp + std::chrono::hours{8};
@@ -20,15 +19,18 @@ Logger::Logger(std::ostream& output, const std::string& token)
     }
 }
 
-void Logger::send_event(const Event& event) {
+[[nodiscard]] static std::string Logger::format_event(const Event& event) {
     std::string formatted_event = timeToString(event.timestamp)     + " | "
                                 + event.source                      + " | "
                                 + eventtypeToString(event.type)     + " | "
                                 + event.payload                     + '\n';
-    output_ << formatted_event;
-    bot.getApi().sendMessage(chat_id_, formatted_event);
+    return formatted_event;
+}
+
+void Logger::log_event(const Event& event) {
+    output_ << format_event(event);
 }
 
 void Logger::log(const Event& event) {
-    send_event(event);
+    log_event(event);
 }
