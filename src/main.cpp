@@ -47,7 +47,7 @@ int main() {
 
     EventQueue queue{};
     Logger logs{logfile};
-    TeleNotifier telenotif {token};
+    TeleNotifier telenotif {token, logs};
 
     std::signal(SIGINT, request_shutdown);
     std::signal(SIGTERM, request_shutdown);
@@ -155,7 +155,7 @@ int main() {
         }
     });
 
-    std::jthread telebot([&telenotif] {
+    std::jthread telebot([&logs, &telenotif] {
         telenotif.long_poll();
     });
 

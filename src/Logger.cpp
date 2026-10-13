@@ -31,3 +31,15 @@ void Logger::log_event(const std::string& formatted_string) {
     output_ << (formatted_string);
     latest_event_ = formatted_string;
 }
+
+[[nodiscard]] std::string Logger::get_latest() {
+    return latest_event_;
+}
+
+void Logger::set_latest(const std::string& latest) {
+    latest_event_ = latest;
+}
+
+[[nodiscard]] std::size_t Logger::get_count() {
+    return event_count_;
+}

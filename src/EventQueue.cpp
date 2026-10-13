@@ -3,22 +3,22 @@
 #include "EventQueue.hpp"
 
 [[nodiscard]] std::size_t EventQueue::size() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     return events_.size();
 }
 
 [[nodiscard]] bool EventQueue::empty() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     return events_.size() == 0;
 }
 
 void EventQueue::clear() {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     events_.clear();      
 }
 
 [[nodiscard]] std::optional<Event> EventQueue::try_pop() {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     if (events_.empty()) {
         return std::nullopt;
     }
@@ -45,7 +45,7 @@ void EventQueue::clear() {
 
 bool EventQueue::push(const Event& event){
     {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::scoped_lock lock(mutex_);
         if (closed_){
             return false;
         }
