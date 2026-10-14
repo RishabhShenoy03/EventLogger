@@ -12,11 +12,18 @@
 #include "Event.hpp"
 #include "Logger.hpp"
 
-class TeleNotifier {
-    std::vector<std::int64_t> chat_id_list_;
+class TeleNotifier {    
+    struct Subscriber {
+        std::int64_t chat_id;
+        std::string display_name;
+    };
+
+    std::vector<Subscriber> subscribers_;
     TgBot::Bot bot_;
     std::mutex mutex_;
     Logger& logs_;
+    std::unordered_set<std::int64_t> awaiting_name_;
+
 
 public:
     TeleNotifier(const char* token, Logger& logs);
