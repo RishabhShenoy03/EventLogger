@@ -3,18 +3,15 @@
 #include <optional>
 #include <unordered_map>
 
-#include "EventQueue.hpp"
 #include "person_types.hpp"
 #include "PresenceTracker.hpp"
 
 using Clock = std::chrono::steady_clock;
 using Sysclock = std::chrono::system_clock;
 
-
-PresenceTracker::PresenceTracker();
 std::vector<Event> PresenceTracker::update(const std::vector<PersonMatch>& matches, const Clock::time_point& steady_now, const Sysclock::time_point& sys_now) {
     std::vector<Event> changes = erase_stale_entries(steady_now, sys_now);
-    changes.append_range(handle_matches(steady_now, sys_now, matches))
+    changes.append_range(handle_matches(steady_now, sys_now, matches));
     return changes;
 }
 

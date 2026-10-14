@@ -23,6 +23,7 @@
 #include "FaceRegistry.hpp"
 #include "person_types.hpp"
 #include "TeleNotifier.hpp"
+#include "PresenceTracker.hpp"
 
 using Clock = std::chrono::steady_clock;
 using Sysclock = std::chrono::system_clock;
@@ -54,16 +55,9 @@ int main() {
     std::signal(SIGINT, request_shutdown);
     std::signal(SIGTERM, request_shutdown);
 
-    std::jthread producer([&queue, &camera, &registry, &processor] (std::stop_token stop)
+    std::jthread producer([&queue, &camera, &registry, &processor, &presence]
+                        (std::stop_token stop)
     {
-        std::unordered_map<PersonID, Clock::time_point> inside_room;
-        std::optional<Clock::time_point> pending_unknown_since;
-        std::optional<Clock::time_point> last_entry_logged;
-
-        const auto time_absence = std::chrono::seconds{30};
-        const auto time_debounce = std::chrono::seconds{12};
-        const auto unknown_limit = std::chrono::seconds{3};
-
         while (!stop.stop_requested()) {
 
             cv::Mat frame = camera.capture();
@@ -80,7 +74,7 @@ int main() {
                 matches.push_back(registry.match(person));
             }
 
-            std::vector<Events> changes = presence.update(matches, steady_now, sys_now);
+            std::vector<Event> changes = presence.update(matches, steady_now, sys_now);
 
             for (const Event& event : changes) {
                 queue.push(event);
