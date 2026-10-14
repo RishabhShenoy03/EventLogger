@@ -8,12 +8,12 @@
 
 Logger::Logger(std::ostream& output): output_(output) {}
 
-[[nodiscard]] std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
+ std::string Logger::timeToString(const std::chrono::system_clock::time_point& timestamp) {
     auto sgt = timestamp + std::chrono::hours{8};
     return std::format("{:%d-%m-%Y %H:%M:%S} SGT", sgt);
 }
 
-[[nodiscard]] std::string Logger::eventtypeToString(const EventType& type) {
+std::string Logger::eventtypeToString(const EventType& type) {
     switch (type) {
         case EventType::PersonEnter :    return "Person Enter";
         case EventType::PersonLeave :    return "Person Left";
@@ -21,7 +21,7 @@ Logger::Logger(std::ostream& output): output_(output) {}
     }
 }
 
-[[nodiscard]] std::string Logger::format_event(const Event& event) {
+ std::string Logger::format_event(const Event& event) {
     std::string formatted_event = timeToString(event.timestamp)     + " | "
                                 + event.source                      + " | "
                                 + eventtypeToString(event.type)     + " | "
@@ -36,7 +36,7 @@ void Logger::log_event(const std::string& formatted_string) {
     event_count_++;
 }
 
-[[nodiscard]] std::string Logger::get_latest() {
+ std::string Logger::get_latest() {
     std::scoped_lock lock(mutex_);
     if (!event_count_) {
         return std::string("No events logged yet"); 
@@ -44,12 +44,12 @@ void Logger::log_event(const std::string& formatted_string) {
     return latest_event_;
 }
 
-[[maybe_unused]] void Logger::set_latest(const std::string& latest) {
+void Logger::set_latest(const std::string& latest) {
     std::scoped_lock lock(mutex_);
     latest_event_ = latest;
 }
 
-[[nodiscard]] std::size_t Logger::get_count() {
+ std::size_t Logger::get_count() {
     std::scoped_lock lock(mutex_);
     return event_count_;
 }

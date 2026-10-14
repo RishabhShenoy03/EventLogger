@@ -16,7 +16,7 @@ class FaceProcessor {
 public:
 
     FaceProcessor();
-    cv::Mat detect(const cv::Mat& frame);
-    std::vector<cv::Mat> extract(const cv::Mat& img, const cv::Mat& faces);
+    [[nodiscard]] cv::Mat detect(const cv::Mat& frame);
+    [[nodiscard]] std::vector<cv::Mat> extract(const cv::Mat& img, const cv::Mat& faces);
     double similarity(cv::Mat feature_a, cv::Mat feature_b);
 };

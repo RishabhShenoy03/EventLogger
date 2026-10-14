@@ -2,12 +2,12 @@
 
 #include "EventQueue.hpp"
 
-[[nodiscard]] std::size_t EventQueue::size() const {
+std::size_t EventQueue::size() const {
     std::scoped_lock lock(mutex_);
     return events_.size();
 }
 
-[[nodiscard]] bool EventQueue::empty() const {
+bool EventQueue::empty() const {
     std::scoped_lock lock(mutex_);
     return events_.size() == 0;
 }
@@ -17,7 +17,7 @@ void EventQueue::clear() {
     events_.clear();      
 }
 
-[[nodiscard]] std::optional<Event> EventQueue::try_pop() {
+std::optional<Event> EventQueue::try_pop() {
     std::scoped_lock lock(mutex_);
     if (events_.empty()) {
         return std::nullopt;
@@ -28,7 +28,7 @@ void EventQueue::clear() {
     return event;
 }
 
-[[nodiscard]] std::optional<Event> EventQueue::wait_and_pop() {
+std::optional<Event> EventQueue::wait_and_pop() {
     std::unique_lock<std::mutex> lock(mutex_);
     
     cond_.wait(lock, [this]{                        // wait (release mutex) until queue is not empty OR queue not closed

@@ -12,5 +12,5 @@ class CameraCapture {
 
 public:
     CameraCapture();
-    cv::Mat capture();
+    [[nodiscard]] cv::Mat capture();
 };

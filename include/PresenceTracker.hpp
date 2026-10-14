@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <optional>
 #include <unordered_map>
@@ -19,11 +20,11 @@ private:
     const std::chrono::seconds time_absence{30};
     const std::chrono::seconds time_debounce{12};
     const std::chrono::seconds unknown_limit{3};
-    std::vector<Event> erase_stale_entries(Clock::time_point steady_now, Sysclock::time_point sys_now);
-    std::vector<Event> handle_matches(const Clock::time_point& steady_now, const Sysclock::time_point& sys_now, const std::vector<PersonMatch>& matches);
+    [[nodiscard]] std::vector<Event> erase_stale_entries(Clock::time_point steady_now, Sysclock::time_point sys_now);
+    [[nodiscard]] std::vector<Event> handle_matches(const Clock::time_point& steady_now, const Sysclock::time_point& sys_now, const std::vector<PersonMatch>& matches);
 
 public:
     PresenceTracker() = default;
-    std::vector<Event> update(const std::vector<PersonMatch>& matches, const Clock::time_point& steady_now, const Sysclock::time_point& sys_now);
+    [[nodiscard]] std::vector<Event> update(const std::vector<PersonMatch>& matches, const Clock::time_point& steady_now, const Sysclock::time_point& sys_now);
 
 };

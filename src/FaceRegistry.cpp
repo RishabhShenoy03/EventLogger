@@ -60,7 +60,7 @@ void FaceRegistry::enroll_persons() {
     std::cout << "Enroll done\n";
 }
 
-[[nodiscard]] PersonMatch FaceRegistry::match(const cv::Mat& feature) {
+PersonMatch FaceRegistry::match(const cv::Mat& feature) {
     if (feature.empty()) {
         return PersonMatch{PersonID::Unknown, 0.0};
     }

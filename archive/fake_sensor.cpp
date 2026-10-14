@@ -19,7 +19,7 @@ FakeSensor::FakeSensor() {
     events_.push_back(event_d);
 }
 
-[[nodiscard]] std::optional<Event> FakeSensor::sense_fake_event(){
+std::optional<Event> FakeSensor::sense_fake_event(){
     if (index_ < events_.size()){
         return events_[index_++]; // return events_[index_], then post-increment index_
     }
