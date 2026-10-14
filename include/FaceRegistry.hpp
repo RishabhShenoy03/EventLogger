@@ -22,9 +22,5 @@ public:
     
     FaceRegistry(FaceProcessor& processor);
     void enroll_persons();
-    [[nodiscard]] PersonID stringToPersonID(const std::string& person_name);
-    [[nodiscard]] std::string personIDToString(const PersonID& personid);
     [[nodiscard]] PersonMatch match(const cv::Mat& feature);
-    [[nodiscard]] std::string person_enter_payload(const PersonMatch& match);
-    [[nodiscard]] std::string person_leave_payload(const PersonID& personid);
 };

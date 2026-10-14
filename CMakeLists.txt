@@ -25,6 +25,7 @@ add_library(event_core
     src/FaceProcessor.cpp
     src/FaceRegistry.cpp
     src/TeleNotifier.cpp
+    src/PresenceTracker.cpp
 )
 
 target_compile_features(event_core PUBLIC cxx_std_23)

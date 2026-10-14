@@ -37,6 +37,7 @@ int main() {
     CameraCapture camera{};
     FaceProcessor processor{};
     FaceRegistry registry{processor};
+    PresenceTracker presence{};
 
     std::ofstream logfile{"outputs/events.log"};
 
@@ -64,81 +65,27 @@ int main() {
         const auto unknown_limit = std::chrono::seconds{3};
 
         while (!stop.stop_requested()) {
+
             cv::Mat frame = camera.capture();
             cv::Mat faces = processor.detect(frame);
             std::vector<cv::Mat> persons_spotted = processor.extract(frame, faces);
-
-            auto now = Clock::now();
             
-            // Erase stale entries (>30 seconds)
-            for (auto it = inside_room.begin(); it != inside_room.end(); ) {
-                if (now - it->second > time_absence) {
-                    queue.push(Event{
-                        EventType::PersonLeave,
-                        "Producer Thread",
-                        Sysclock::now(),
-                        registry.person_leave_payload(it->first)
-                    });
-                    it = inside_room.erase(it);
-                }
-                else {
-                    it++;
-                }
-            }
+            std::vector<PersonMatch> matches;
+            matches.reserve(persons_spotted.size());
 
-            bool saw_unknown = false;
+            auto steady_now = Clock::now();
+            auto sys_now = Sysclock::now();
 
             for (const auto& person : persons_spotted) {
-                PersonMatch match = registry.match(person);
-                
-                if (match.id != PersonID::Unknown) {    // known person detected
-                    auto it = inside_room.find(match.id);
-                    if (it != inside_room.end()) { // if map contains the same person already, update last seen
-                        it->second = now;
-                    }
-                    else if (!last_entry_logged || now - *last_entry_logged >= time_debounce) { // if not inside, add to map, push event, set last_entry_logged
-                        queue.push(Event{
-                            EventType::PersonEnter,
-                            "Producer Thread",
-                            Sysclock::now(),
-                            registry.person_enter_payload(match)
-                        });
-                        inside_room[match.id] = now; // only insert when not within the debounce time limit
-                        last_entry_logged = now;
-                    }
-                }
-                else { // unknown person detected
-                    saw_unknown = true;
-                    if (inside_room.find(match.id) != inside_room.end()) { // unknown already inside map
-                        inside_room[PersonID::Unknown] = now;
-                        continue;   
-                    }
-
-                    // first time unknown spotted, set unknown spot time to check against in 3 seconds
-                    if (!pending_unknown_since.has_value()) {
-                        pending_unknown_since = now;
-                        continue;
-                    }
-
-                    // more than 3s since unknown detected, still unknown being detected
-                    // Also outside of debounce limit
-                    if (now - *pending_unknown_since >= unknown_limit
-                        && (!last_entry_logged || now - *last_entry_logged >= time_debounce)) {
-                        queue.push(Event{
-                            EventType::PersonEnter,
-                            "Producer Thread",
-                            Sysclock::now(),
-                            registry.person_enter_payload(match)
-                        });
-                        inside_room[PersonID::Unknown] = now; // update last seen
-                        pending_unknown_since.reset();
-                        last_entry_logged = now;
-                    }
-                }
+                matches.push_back(registry.match(person));
             }
-            if (!saw_unknown) {
-                pending_unknown_since.reset();
+
+            std::vector<Events> changes = presence.update(matches, steady_now, sys_now);
+
+            for (const Event& event : changes) {
+                queue.push(event);
             }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
         }
         queue.close();
