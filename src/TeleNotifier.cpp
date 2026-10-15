@@ -18,22 +18,12 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         bot_.getApi().sendMessage(message->chat->id, "Hello! Please choose a username:D");
         {
             std::scoped_lock lock(mutex_);
-            auto it = std::ranges::find(
-                subscribers_,
-                message->chat->id,
-                &Subscriber::chat_id
-            );
-            if (it == subscribers_.end()) { // not existing subscriber
-                awaiting_name_.insert(message->chat->id);
-            }
-            else {
-                
-            }
+            awaiting_name_.insert(message->chat->id);
         }
     });
 
     bot_.getEvents().onAnyMessage([this](std::shared_ptr<TgBot::Message> message) {
-        const auto chat_id = message->chat->id;
+        const auto new_chat_id = message->chat->id;
         const std::string name = message->text.value_or("");
         // Ignore commands
         if (name.starts_with("/") ||
@@ -42,22 +32,30 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         }
         {
             std::scoped_lock lock(mutex_);
+            if (awaiting_name_.find(new_chat_id) != awaiting_name_.end()) {
+                auto it = subscribers_.begin();
+                // check if already subscribed, then update/add subscriber
+                for (; it != subscribers_.end(); ++it) {
+                    // already subscribed
+                    if (it->chat_id == new_chat_id) {
+                        it->display_name = name;
+                        break;
+                    }
+                }
+                if (it == subscribers_.end()) {
+                    subscribers_.push_back(Subscriber{new_chat_id, name});
+                }
 
-            
-
-            if (awaiting_name_.find(chat_id) != awaiting_name_.end()) {
-                awaiting_name_.erase(chat_id);
-                subscribers_.push_back(Subscriber{chat_id, name});
-            }
-            else {
-
+                awaiting_name_.erase(new_chat_id);
             }
         }
     });
 
     bot_.getEvents().onCommand("status", [this](std::shared_ptr<TgBot::Message> message) {
-        std::scoped_lock lock(mutex_);
-        bot_.getApi().sendMessage(message->chat->id, logs_.get_latest());
+        {
+            std::scoped_lock lock(mutex_);
+            bot_.getApi().sendMessage(message->chat->id, logs_.get_latest());
+        }
     });
 
     try {
@@ -72,12 +70,14 @@ void TeleNotifier::long_poll(std::stop_token stop) {
 }
 
 void TeleNotifier::send_notif(const std::string& formatted_event) {
-    std::scoped_lock lock(mutex_);
-    for (auto subscriber : subscribers_) {
-        try {
-            bot_.getApi().sendMessage(subscriber.chat_id, formatted_event);
-        } catch (const TgBot::TgException& e) {
-            std::cout << "error: " << e.what() << std::endl;
+    {
+        std::scoped_lock lock(mutex_);
+        for (auto subscriber : subscribers_) {
+            try {
+                bot_.getApi().sendMessage(subscriber.chat_id, formatted_event);
+            } catch (const TgBot::TgException& e) {
+                std::cout << "error: " << e.what() << std::endl;
+            }
         }
     }
 }
