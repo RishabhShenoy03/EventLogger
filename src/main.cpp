@@ -80,7 +80,7 @@ int main() {
                 queue.push(event);
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         queue.close();
     });
@@ -111,6 +111,12 @@ int main() {
     producer.join();
     consumer.join();
     telebot.join();
+
+    try {
+        telenotif.save_subscribers();
+    } catch (const std::exception& e){
+        std::cerr << "Could not save subscribers: " << e.what() << '\n';
+    }
    
     return 0;
 }

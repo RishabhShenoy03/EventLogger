@@ -23,10 +23,13 @@ class TeleNotifier {
     std::mutex mutex_;
     Logger& logs_;
     std::unordered_set<std::int64_t> awaiting_name_;
+    void load_subscribers();
 
 
 public:
     TeleNotifier(const char* token, Logger& logs);
     void long_poll(std::stop_token stop);
     void send_notif(const std::string& formatted_event);
+    void save_subscribers();
+
 };
