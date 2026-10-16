@@ -43,6 +43,14 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         }
     });
 
+    bot_.getEvents().onCommand("admin_subcount", [this](std::shared_ptr<TgBot::Message> message) {
+        std::scoped_lock lock(mutex_);
+        if (message->chat->id == admin_id_) {
+            std::string payload = "Subscribers: " + std::to_string(subscribers_.size());
+            bot_.getApi().sendMessage(admin_id_, payload);
+        }
+    });
+
 
     bot_.getEvents().onCommand("status", [this](std::shared_ptr<TgBot::Message> message) {
         {
