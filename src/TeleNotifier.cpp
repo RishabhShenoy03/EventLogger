@@ -179,3 +179,14 @@ void TeleNotifier::load_subscribers() {
 
     subscribers_ = std::move(loaded);
 }
+
+bool TeleNotifier::isPresent(const std::int64_t& id_to_check) {
+    auto it = subscribers_.begin();
+    for (; it != subscribers_.end(); ++it) {
+        if (it->chat_id == id_to_check) {
+            return true;
+        }
+    }
+    return false;
+}
+
