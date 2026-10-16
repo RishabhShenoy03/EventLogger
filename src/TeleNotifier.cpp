@@ -18,8 +18,8 @@
 
 using json = nlohmann::json;
 
-TeleNotifier::TeleNotifier(const char* token, Logger& logs)
-    : bot_(TgBot::Bot(token)), logs_(logs)
+TeleNotifier::TeleNotifier(const char* token, Logger& log, std::int64_t admin_id)
+    : bot_(TgBot::Bot(token)), logs_(log), admin_id_(admin_id)
 {
     load_subscribers();
 }
@@ -139,7 +139,7 @@ void TeleNotifier::load_subscribers() {
     subscribers_ = std::move(loaded);
 }
 
-bool TeleNotifier::isSubbed(const std::int64_t& id_to_check) {
+bool TeleNotifier::isSubbed(std::int64_t id_to_check) {
     auto it = subscribers_.begin();
     for (; it != subscribers_.end(); ++it) {
         if (it->chat_id == id_to_check) {
@@ -211,7 +211,7 @@ std::string TeleNotifier::subs_to_string() {
     std::string message = "Subscriber List:\n";
     for (const auto& s : subscribers_) {
         message += s.display_name + ", "
-                + std::to_string(s.chat_id); + '\n';
+                + std::to_string(s.chat_id) + "\n";
     }
     return message;
 }

@@ -40,7 +40,7 @@ int main() {
     FaceRegistry registry{processor};
     PresenceTracker presence{};
 
-    std::ofstream logfile{"outputs/events.log"};
+    std::ofstream logfile{"outputs/events.log", std::ios::app};
 
     const char* token = std::getenv("TGBOT_API_KEY");
     if (token == nullptr || *token == '\0') {
@@ -48,9 +48,23 @@ int main() {
         return 1;
     }
 
+    const char* admin_env = std::getenv("TGBOT_ADMIN_CHAT_ID");
+    if (admin_env == nullptr || *admin_env == '\0') {
+        std::cerr << "TGBOT_ADMIN_CHAT_ID is not set\n";
+        return 1;
+    }
+
+    std::int64_t admin_id{};
+    try {
+        admin_id = std::stoll(admin_env);
+    } catch (const std::exception& e) {
+        std::cerr << "Conversion to int64 failed" << e.what() << "\n";
+        return 1;
+    }
+
     EventQueue queue{};
     Logger logs{logfile};
-    TeleNotifier telenotif {token, logs};
+    TeleNotifier telenotif {token, logs, admin_id};
 
     std::signal(SIGINT, request_shutdown);
     std::signal(SIGTERM, request_shutdown);

@@ -30,7 +30,7 @@ class TeleNotifier {
     void insert_user(const std::shared_ptr<TgBot::Message>& message);
 
 public:
-    TeleNotifier(const char* token, Logger& logs);
+    TeleNotifier(const char* token, Logger& logs, std::int64_t admin_id);
     void long_poll(std::stop_token stop);
     void send_notif(const std::string& formatted_event);
     void save_subscribers();
