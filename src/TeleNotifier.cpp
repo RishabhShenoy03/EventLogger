@@ -34,45 +34,13 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     });
 
     bot_.getEvents().onAnyMessage([this](std::shared_ptr<TgBot::Message> message) {
-        const auto new_chat_id = message->chat->id;
-        const std::string name = message->text.value_or("");
-        // Ignore commands
-        if (name.starts_with("/") ||
-            name.find_first_not_of(" \t\r\n") == std::string::npos) {
-            return;
-        }
-        
-        bool updated = false;
+        insert_user(message);
+    });
 
-        {
-            std::scoped_lock lock(mutex_);
-            if (!awaiting_name_.contains(new_chat_id)) {
-                if (!isSubbed(new_chat_id)) {
-                    subscribers_.push_back(Subscriber{new_chat_id, name});
-                    updated = false;
-                }
-                else {
-                    auto it = find_sub(new_chat_id);
-                    it->display_name = name;
-                    updated = true;
-                }
-                awaiting_name_.erase(new_chat_id);
-            }
+    bot_.getEvents().onCommand("admin_sublist",[this](std::shared_ptr<TgBot::Message> message) {
+        if (message->chat->id == admin_id_) {
+            bot_.getApi().sendMessage(admin_id_, subs_to_string());
         }
-        try {
-            save_subscribers();
-        } catch (const std::exception& e) {
-            std::cerr << "Could not save subscribers: " << e.what() << '\n';
-            bot_.getApi().sendMessage(
-                new_chat_id,
-                "Your name is set for this session, but saving failed."
-            );
-        }
-
-        const std::string reply = updated
-            ? "Name Updated: Welcome back, " + name
-            : "New User: Welcome, " + name;
-        bot_.getApi().sendMessage(new_chat_id, reply);
     });
 
 
@@ -189,5 +157,62 @@ std::vector<TeleNotifier::Subscriber>::iterator TeleNotifier::find_sub(std::int6
         }
     }
     return it;
+}
+
+void TeleNotifier::insert_user(const std::shared_ptr<TgBot::Message>& message) {
+    const auto new_chat_id = message->chat->id;
+    const std::string name = message->text.value_or("");
+    // Ignore commands
+    if (name.starts_with("/") ||
+        name.find_first_not_of(" \t\r\n") == std::string::npos) {
+        return;
+    }
+    
+    bool updated = false;
+
+    {
+        std::scoped_lock lock(mutex_);
+        if (awaiting_name_.contains(new_chat_id)) {
+            if (!isSubbed(new_chat_id)) {
+                subscribers_.push_back(Subscriber{new_chat_id, name});
+                updated = false;
+            }
+            else {
+                auto it = find_sub(new_chat_id);
+                it->display_name = name;
+                updated = true;
+            }
+            awaiting_name_.erase(new_chat_id);
+        }
+    }
+    try {
+        save_subscribers();
+    } catch (const std::exception& e) {
+        std::cerr << "Could not save subscribers: " << e.what() << '\n';
+        bot_.getApi().sendMessage(
+            new_chat_id,
+            "Your name is set for this session, but saving failed."
+        );
+    }
+
+    const std::string reply = updated
+        ? "Name Updated: Welcome back, " + name
+        : "New User: Welcome, " + name;
+    bot_.getApi().sendMessage(new_chat_id, reply);
+}
+
+std::string TeleNotifier::subs_to_string() {
+    std::scoped_lock lock(mutex_);
+
+    if (subscribers_.empty()) {
+        return "No subscribers currently";
+    }
+
+    std::string message = "Subscriber List:\n";
+    for (const auto& s : subscribers_) {
+        message += s.display_name + ", "
+                + std::to_string(s.chat_id); + '\n';
+    }
+    return message;
 }
 

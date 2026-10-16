@@ -23,15 +23,17 @@ class TeleNotifier {
     std::mutex mutex_;
     Logger& logs_;
     std::unordered_set<std::int64_t> awaiting_name_;
+    const std::int64_t admin_id_;
     void load_subscribers();
-
+    [[nodiscard]] bool isSubbed(std::int64_t id_to_check);
+    [[nodiscard]] std::vector<Subscriber>::iterator find_sub(std::int64_t id_to_find);
+    void insert_user(const std::shared_ptr<TgBot::Message>& message);
 
 public:
     TeleNotifier(const char* token, Logger& logs);
     void long_poll(std::stop_token stop);
     void send_notif(const std::string& formatted_event);
     void save_subscribers();
-    [[nodiscard]] bool isSubbed(std::int64_t id_to_check);
-    [[nodiscard]] std::vector<Subscriber>::iterator find_sub(std::int64_t id_to_find);
-
+    [[nodiscard]] std::string subs_to_string();
+    
 };
