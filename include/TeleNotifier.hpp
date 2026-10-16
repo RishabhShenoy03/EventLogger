@@ -31,6 +31,7 @@ public:
     void long_poll(std::stop_token stop);
     void send_notif(const std::string& formatted_event);
     void save_subscribers();
-    [[nodiscard]] bool isPresent(const std::int64_t chat_id);
+    [[nodiscard]] bool isSubbed(std::int64_t id_to_check);
+    [[nodiscard]] std::vector<Subscriber>::iterator find_sub(std::int64_t id_to_find);
 
 };

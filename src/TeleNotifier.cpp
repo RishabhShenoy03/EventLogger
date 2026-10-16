@@ -46,26 +46,17 @@ void TeleNotifier::long_poll(std::stop_token stop) {
 
         {
             std::scoped_lock lock(mutex_);
-            if (awaiting_name_.find(new_chat_id) != awaiting_name_.end()) {
-                auto it = subscribers_.begin();
-                
-                // check if already subscribed, then update/add subscriber
-                for (; it != subscribers_.end(); ++it) {
-                    // already subscribed
-                    if (it->chat_id == new_chat_id) {
-                        it->display_name = name;
-                        updated = true;
-                        break;
-                    }
-                }
-                if (it == subscribers_.end()) {
+            if (!awaiting_name_.contains(new_chat_id)) {
+                if (!isSubbed(new_chat_id)) {
                     subscribers_.push_back(Subscriber{new_chat_id, name});
                     updated = false;
                 }
+                else {
+                    auto it = find_sub(new_chat_id);
+                    it->display_name = name;
+                    updated = true;
+                }
                 awaiting_name_.erase(new_chat_id);
-            }
-            else {
-                return;
             }
         }
         try {
@@ -180,7 +171,7 @@ void TeleNotifier::load_subscribers() {
     subscribers_ = std::move(loaded);
 }
 
-bool TeleNotifier::isPresent(const std::int64_t& id_to_check) {
+bool TeleNotifier::isSubbed(const std::int64_t& id_to_check) {
     auto it = subscribers_.begin();
     for (; it != subscribers_.end(); ++it) {
         if (it->chat_id == id_to_check) {
@@ -188,5 +179,15 @@ bool TeleNotifier::isPresent(const std::int64_t& id_to_check) {
         }
     }
     return false;
+}
+
+std::vector<TeleNotifier::Subscriber>::iterator TeleNotifier::find_sub(std::int64_t id_to_find) {
+    auto it = subscribers_.begin();
+    for (; it != subscribers_.end(); ++it) {
+        if (it->chat_id == id_to_find) {
+            break;
+        }
+    }
+    return it;
 }
 
