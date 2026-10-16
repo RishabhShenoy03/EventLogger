@@ -41,6 +41,9 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         if (message->chat->id == admin_id_) {
             bot_.getApi().sendMessage(admin_id_, subs_to_string());
         }
+        else {
+            bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
+        }
     });
 
     bot_.getEvents().onCommand("admin_subcount", [this](std::shared_ptr<TgBot::Message> message) {
@@ -48,6 +51,9 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         if (message->chat->id == admin_id_) {
             std::string payload = "Subscribers: " + std::to_string(subscribers_.size());
             bot_.getApi().sendMessage(admin_id_, payload);
+        }
+        else {
+            bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
         }
     });
 
@@ -180,18 +186,22 @@ void TeleNotifier::insert_user(const std::shared_ptr<TgBot::Message>& message) {
 
     {
         std::scoped_lock lock(mutex_);
-        if (awaiting_name_.contains(new_chat_id)) {
-            if (!isSubbed(new_chat_id)) {
-                subscribers_.push_back(Subscriber{new_chat_id, name});
-                updated = false;
-            }
-            else {
-                auto it = find_sub(new_chat_id);
-                it->display_name = name;
-                updated = true;
-            }
-            awaiting_name_.erase(new_chat_id);
+
+        // skips welcome message for non-name-update messages
+        if (!awaiting_name_.contains(new_chat_id)) {
+            return;
         }
+
+        if (!isSubbed(new_chat_id)) {
+            subscribers_.push_back(Subscriber{new_chat_id, name});
+            updated = false;
+        }
+        else {
+            auto it = find_sub(new_chat_id);
+            it->display_name = name;
+            updated = true;
+        }
+        awaiting_name_.erase(new_chat_id);
     }
     try {
         save_subscribers();
