@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <sstream>
 
 #include "TeleNotifier.hpp"
 #include "Event.hpp"
@@ -66,6 +67,10 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         
         std::string payload = "Subscribers: " + std::to_string(subscribers_.size());
         bot_.getApi().sendMessage(admin_id_, payload);
+    });
+
+    bot_.getEvents().onCommand("admin_message", [this](std::shared_ptr<TgBot::Message> message) {
+        send_admin_message(message);
     });
 
     try {
@@ -242,6 +247,11 @@ void TeleNotifier::insert_user(const std::shared_ptr<TgBot::Message>& message) {
         ? "Name Updated: Welcome back, " + name
         : "New User: Welcome, " + name;
     bot_.getApi().sendMessage(new_chat_id, reply);
+
+    const std::string admin_notif = updated
+        ? "Name updated: " + name + ", " + std::to_string(new_chat_id)
+        : "New User: " + name + ", " + std::to_string(new_chat_id);
+    bot_.getApi().sendMessage(admin_id_, admin_notif);
 }
 
 std::string TeleNotifier::subs_to_string() {
@@ -267,7 +277,7 @@ void TeleNotifier::erase_user(const std::shared_ptr<TgBot::Message>& message) {
         awaiting_name_.erase(pending_chat_id);
 
         auto it = find_sub(pending_chat_id);
-        if (it != subscribers_.end()) { // not in sub list
+        if (it != subscribers_.end()) { // found in sub list
             subscribers_.erase(it);
             removed = true;
         }        
@@ -276,7 +286,9 @@ void TeleNotifier::erase_user(const std::shared_ptr<TgBot::Message>& message) {
     if (!removed) {
         bot_.getApi().sendMessage(
             pending_chat_id,
-            "You weren't subbed yet, but registration has been cancelled");
+            "You weren't subbed yet, but registration has been cancelled"
+        );
+        return;
     }
 
     try {
@@ -291,4 +303,40 @@ void TeleNotifier::erase_user(const std::shared_ptr<TgBot::Message>& message) {
         return;
     }
     bot_.getApi().sendMessage(pending_chat_id, "You have unsubbed from RishberryPi");
+}
+
+void TeleNotifier::send_admin_message(const std::shared_ptr<TgBot::Message>& message) {
+    if (message->chat->id != admin_id_) {
+        bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
+        return;
+    }
+
+    char delimiter = ' ';
+
+    std::istringstream input{message->text.value_or("")};
+
+    std::string command;
+    std::string recipient_id_text;
+    std::string payload;
+
+    std::getline(input, command, delimiter);
+    std::getline(input, recipient_id_text, delimiter);
+    std::int64_t recipient_id_int{};
+    try {
+        recipient_id_int = std::stoll(recipient_id_text);
+    } catch (const std::exception& e) {
+        std::cerr << "Conversion to int64 failed" << e.what() << "\n";
+        return;
+    }
+    std::getline(input, payload, '\0');
+    if (isSubbed(recipient_id_int)) {
+        bot_.getApi().sendMessage(
+            recipient_id_int,
+            "Incoming message from the admin:\n\n" + payload
+        );
+        bot_.getApi().sendMessage(admin_id_, "Message successfully sent");
+    }
+    else {
+        bot_.getApi().sendMessage(admin_id_, "Person not in sub list");
+    }
 }
