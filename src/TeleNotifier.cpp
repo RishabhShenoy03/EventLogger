@@ -247,6 +247,11 @@ void TeleNotifier::insert_user(const std::shared_ptr<TgBot::Message>& message) {
         ? "Name Updated: Welcome back, " + name
         : "New User: Welcome, " + name;
     bot_.getApi().sendMessage(new_chat_id, reply);
+
+    const std::string admin_notif = updated
+        ? "Name updated: " + name + ", " + std::to_string(new_chat_id)
+        : "New User: " + name + ", " + std::to_string(new_chat_id);
+    bot_.getApi().sendMessage(admin_id_, admin_notif);
 }
 
 std::string TeleNotifier::subs_to_string() {
@@ -324,8 +329,11 @@ void TeleNotifier::send_admin_message(const std::shared_ptr<TgBot::Message>& mes
         return;
     }
     std::getline(input, payload, '\0');
-    if (isSubbed(recipient_id_int)) { 
-        bot_.getApi().sendMessage(recipient_id_int, payload);
+    if (isSubbed(recipient_id_int)) {
+        bot_.getApi().sendMessage(
+            recipient_id_int,
+            "Incoming message from the admin:\n\n" + payload
+        );
         bot_.getApi().sendMessage(admin_id_, "Message successfully sent");
     }
     else {
