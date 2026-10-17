@@ -307,7 +307,6 @@ void TeleNotifier::send_admin_message(const std::shared_ptr<TgBot::Message>& mes
     }
 
     char delimiter = " ";
-    const auto chat_id = message->chat->id;
 
     std::istringstream input{message->text->value_or("")};
 
@@ -315,8 +314,8 @@ void TeleNotifier::send_admin_message(const std::shared_ptr<TgBot::Message>& mes
     std::string recipient_id_text;
     std::string payload;
 
-    std::getline(input, command, " ");
-    std::getline(input, recipeint_id_text, " ");
+    std::getline(input, command, delimiter);
+    std::getline(input, recipeint_id_text, delimiter);
     std::int64_t recipient_id_int{};
     try {
         recipient_id_int = std::stoll(recipeint_id_text);
