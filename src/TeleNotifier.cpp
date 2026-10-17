@@ -34,7 +34,15 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     });
 
     bot_.getEvents().onCommand("stop", [this](std::shared_ptr<TgBot::Message> message) {
-        erase_subscriber(message);
+        erase_user(message);
+    });
+
+    bot_.getEvents().onCommand("latest", [this](std::shared_ptr<TgBot::Message> message) {
+        {
+            std::scoped_lock lock(mutex_);
+            std::string payload = "Latest event: \n" + logs_.get_latest();
+            bot_.getApi().sendMessage(message->chat->id, payload);
+        }
     });
 
     bot_.getEvents().onAnyMessage([this](std::shared_ptr<TgBot::Message> message) {
@@ -42,32 +50,22 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     });
 
     bot_.getEvents().onCommand("admin_sublist",[this](std::shared_ptr<TgBot::Message> message) {
-        if (message->chat->id == admin_id_) {
-            bot_.getApi().sendMessage(admin_id_, subs_to_string());
-        }
-        else {
+        if (message->chat->id != admin_id_) {
             bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
-        }
+            return;
+        }      
+        bot_.getApi().sendMessage(admin_id_, subs_to_string());
     });
 
     bot_.getEvents().onCommand("admin_subcount", [this](std::shared_ptr<TgBot::Message> message) {
         std::scoped_lock lock(mutex_);
-        if (message->chat->id == admin_id_) {
-            std::string payload = "Subscribers: " + std::to_string(subscribers_.size());
-            bot_.getApi().sendMessage(admin_id_, payload);
-        }
-        else {
+        if (message->chat->id != admin_id_) {
             bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
+            return;
         }
-    });
-
-
-    bot_.getEvents().onCommand("latest", [this](std::shared_ptr<TgBot::Message> message) {
-        {
-            std::scoped_lock lock(mutex_);
-            std::string message = "Latest event: \n" + logs_.get_latest();
-            bot_.getApi().sendMessage(message->chat->id, message);
-        }
+        
+        std::string payload = "Subscribers: " + std::to_string(subscribers_.size());
+        bot_.getApi().sendMessage(admin_id_, payload);
     });
 
     try {

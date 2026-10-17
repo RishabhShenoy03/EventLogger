@@ -28,13 +28,11 @@ class TeleNotifier {
     [[nodiscard]] bool isSubbed(std::int64_t id_to_check);
     [[nodiscard]] std::vector<Subscriber>::iterator find_sub(std::int64_t id_to_find);
     void insert_user(const std::shared_ptr<TgBot::Message>& message);
-    void TeleNotifier::erase_user(const std::shared_ptr<TgBot::Message>& message);
+    void erase_user(const std::shared_ptr<TgBot::Message>& message);
 public:
     TeleNotifier(const char* token, Logger& logs, std::int64_t admin_id);
     void long_poll(std::stop_token stop);
     void send_notif(const std::string& formatted_event);
     void save_subscribers();
     [[nodiscard]] std::string subs_to_string();
-    
-    
 };
