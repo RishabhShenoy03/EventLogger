@@ -61,30 +61,53 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     bot_.getEvents().onCommand("status", [this](std::shared_ptr<TgBot::Message> message) {
         {
             std::scoped_lock lock(mutex_);
-            bot_.getApi().sendMessage(message->chat->id, logs_.get_latest());
+            std::string message = "Latest event: \n" + logs_.get_latest();
+            bot_.getApi().sendMessage(message->chat->id, message);
         }
     });
 
     try {
-        std::cout << "Bot username: " << bot_.getApi().getMe()->username.value_or("") << std::endl;
-        TgBot::TgLongPoll longPoll(bot_, 100, 2);
-        while (!stop.stop_requested()) {
+        const auto me =   bot_.getApi().getMe();
+        std::cout << "Bot Username: "
+                  << me->username.value_or("") << "\n";
+    } catch (const std::exception& e){
+        std::cerr << "Getting bot username failed: "
+                  << e.what() << "\n";
+    }
+
+    TgBot::TgLongPoll longPoll(bot_, 100, 2);
+
+    while (!stop.stop_requested()) {
+        try {
             longPoll.start();
+        } catch (const std::exception& e) {
+            std::cerr << "Telegram polling/command failed: "
+                    << e.what() << '\n';
+
+            // Wait up to 2 seconds before retrying.
+            // Check for shutdown every 100 milliseconds.
+            for (int i = 0; i < 20 && !stop.stop_requested(); ++i) {
+                std::this_thread::sleep_for(
+                    std::chrono::milliseconds{100}
+                );
+            }
         }
-    } catch (const TgBot::TgException& e) {
-        std::cout << "error: " << e.what() << std::endl;
     }
 }
 
-void TeleNotifier::send_notif(const std::string& formatted_event) {
+void TeleNotifier::send_notif(const std::string& formatted_event) {    
+    std::vector<Subscriber> recipients;
     {
         std::scoped_lock lock(mutex_);
-        for (auto subscriber : subscribers_) {
-            try {
-                bot_.getApi().sendMessage(subscriber.chat_id, formatted_event);
-            } catch (const TgBot::TgException& e) {
-                std::cout << "error: " << e.what() << std::endl;
-            }
+        recipients = subscribers_;
+    }
+    
+    for (auto subscriber : recipients) {
+        try {
+            bot_.getApi().sendMessage(subscriber.chat_id, formatted_event);
+        } catch (const std::exception& e) {
+            std::cout << "Notif failed for chat_id " << subscriber.chat_id
+                        << ": " << e.what() << "\n";
         }
     }
 }
