@@ -306,19 +306,19 @@ void TeleNotifier::send_admin_message(const std::shared_ptr<TgBot::Message>& mes
         return;
     }
 
-    char delimiter = " ";
+    char delimiter = ' ';
 
-    std::istringstream input{message->text->value_or("")};
+    std::istringstream input{message->text.value_or("")};
 
     std::string command;
     std::string recipient_id_text;
     std::string payload;
 
     std::getline(input, command, delimiter);
-    std::getline(input, recipeint_id_text, delimiter);
+    std::getline(input, recipient_id_text, delimiter);
     std::int64_t recipient_id_int{};
     try {
-        recipient_id_int = std::stoll(recipeint_id_text);
+        recipient_id_int = std::stoll(recipient_id_text);
     } catch (const std::exception& e) {
         std::cerr << "Conversion to int64 failed" << e.what() << "\n";
         return;
