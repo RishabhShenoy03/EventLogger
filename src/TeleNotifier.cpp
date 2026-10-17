@@ -33,6 +33,10 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         }
     });
 
+    bot_.getEvents().onCommand("stop", [this](std::shared_ptr<TgBot::Message> message) {
+        erase_subscriber(message);
+    });
+
     bot_.getEvents().onAnyMessage([this](std::shared_ptr<TgBot::Message> message) {
         insert_user(message);
     });
@@ -58,7 +62,7 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     });
 
 
-    bot_.getEvents().onCommand("status", [this](std::shared_ptr<TgBot::Message> message) {
+    bot_.getEvents().onCommand("latest", [this](std::shared_ptr<TgBot::Message> message) {
         {
             std::scoped_lock lock(mutex_);
             std::string message = "Latest event: \n" + logs_.get_latest();
@@ -257,3 +261,36 @@ std::string TeleNotifier::subs_to_string() {
     return message;
 }
 
+void TeleNotifier::erase_user(const std::shared_ptr<TgBot::Message>& message) {
+    const auto pending_chat_id = message->chat->id;
+    bool removed = false;
+    {
+        std::scoped_lock lock(mutex_);
+        awaiting_name_.erase(pending_chat_id);
+
+        auto it = find_sub(pending_chat_id);
+        if (it != subscribers_.end()) { // not in sub list
+            subscribers_.erase(it);
+            removed = true;
+        }        
+    }
+
+    if (!removed) {
+        bot_.getApi().sendMessage(
+            pending_chat_id,
+            "You weren't subbed yet, but registration has been cancelled");
+    }
+
+    try {
+        save_subscribers();
+    } catch (const std::exception& e) {
+        std::cerr << "Could not save subscribers: "
+                    << e.what() << "\n";
+        bot_.getApi().sendMessage(
+            pending_chat_id,
+            "Unsubscribed for this session, but saving failed."
+        );
+        return;
+    }
+    bot_.getApi().sendMessage(pending_chat_id, "You have unsubbed from RishberryPi");
+}
