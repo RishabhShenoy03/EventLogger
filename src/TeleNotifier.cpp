@@ -251,10 +251,23 @@ void TeleNotifier::insert_user(const std::shared_ptr<TgBot::Message>& message) {
         );
     }
 
-    const std::string reply = updated
+    const std::string quick_tips =
+        "Commands:\n"
+        "/start - Subscribe or update your name\n"
+        "/stop - Unsubscribe or cancel registration\n"
+        "/latest - View the latest event\n"
+        "/contact <message> - Message the admin\n"
+        "\nAdmin only:\n"
+        "/sublist - List subscribers and chat IDs\n"
+        "/subcount - Show subscriber count\n"
+        "/msg <chat_id> <message> - Message a subscriber\n"
+        "/broadcast <message> - Message all subscribers except admin\n";
+    
+        const std::string reply = updated
         ? "Name Updated: Welcome back, " + name
         : "New User: Welcome, " + name;
     bot_.getApi().sendMessage(new_chat_id, reply);
+    bot_.getApi().sendMessage(new_chat_id, quick_tips);
 
     const std::string admin_notif = updated
         ? "Name updated: " + name + ", " + std::to_string(new_chat_id)
