@@ -30,6 +30,7 @@ class TeleNotifier {
     void insert_user(const std::shared_ptr<TgBot::Message>& message);
     void erase_user(const std::shared_ptr<TgBot::Message>& message);
     void send_admin_message(const std::shared_ptr<TgBot::Message>& message);
+    void send_message_to_admin(const std::shared_ptr<TgBot::Message>& message);
 public:
     TeleNotifier(const char* token, Logger& logs, std::int64_t admin_id);
     void long_poll(std::stop_token stop);
