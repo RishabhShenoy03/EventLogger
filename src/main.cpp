@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <cstdlib>
 #include <stop_token>
+#include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/highgui.hpp>
@@ -50,7 +51,7 @@ int main() {
 
     const char* token = std::getenv("TGBOT_API_KEY");
     if (token == nullptr || *token == '\0') {
-        std::cerr << "TGBOT_BOT_TOKEN is not set\n";
+        std::cerr << "TGBOT_API_KEY is not set\n";
         return 1;
     }
 

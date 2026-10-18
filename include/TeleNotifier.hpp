@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include <stop_token>
+#include <unordered_set>
 #include <tgbot/tgbot.h>
 
 #include "Event.hpp"

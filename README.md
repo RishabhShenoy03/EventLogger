@@ -233,11 +233,8 @@ Do not run `tele_test` and `event_gateway` simultaneously with the same bot toke
 From the repository root:
 
 ```bash
-mkdir -p outputs
 ./build/dev/event_gateway
 ```
-
-The `outputs` directory must exist before the application opens its log file.
 
 At startup, the application opens the camera, loads the models, and enrolls the reference images. Face counts printed before `Enroll done` refer to enrollment images.
 
@@ -438,17 +435,15 @@ source .env
 set +a
 ```
 
-The token variable is `TGBOT_API_KEY`, even if the error message refers to `TGBOT_BOT_TOKEN`.
-
 ### Telegram notifications are missing
 
 Complete name registration, confirm the chat appears in `/subs`, and trigger a new event.
 
 Check the local log and terminal for errors. Polling retries after network errors, but failed outgoing notifications are not replayed automatically.
 
-### No log file appears
-
-Create `outputs/`, confirm it is writable, and run from the repository root.
+Run from the repository root and check the terminal for startup errors.
+The application creates `outputs/` automatically; the working directory
+and log file must be writable.
 
 ### Subscriber loading fails
 
@@ -456,11 +451,12 @@ Check `data/subscribers.json` for malformed JSON. Back up the file before repair
 
 ## Current limitations
 
+- Camera failures have no automatic reconnection path. An exception
+during capture or face processing can terminate the application.
 - Recognition depends on face visibility, lighting, camera quality, and enrollment images.
 - Turning away can result in an unknown match or an absence timeout.
 - Unknown detections share one `Unknown` identity; separate unknown people are not tracked individually.
 - The global entry cooldown can delay or suppress notifications when people arrive close together.
-- Camera failures currently have no automatic reconnection path.
 - Telegram delivery runs in the event-consumer thread, so slow network requests can delay subsequent event processing.
 - Registration is open, and `/latest` is not restricted to subscribers.
 - The application currently requires manual startup.
