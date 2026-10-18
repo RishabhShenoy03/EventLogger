@@ -20,7 +20,20 @@
 using json = nlohmann::json;
 
 TeleNotifier::TeleNotifier(const char* token, Logger& log, std::int64_t admin_id)
-    : bot_(TgBot::Bot(token)), logs_(log), admin_id_(admin_id)
+    : bot_(TgBot::Bot(token)), logs_(log), admin_id_(admin_id),
+    quick_tips_(
+        "Commands:\n"
+        "/help - Show available commands\n"
+        "/start - Subscribe or update your name\n"
+        "/stop - Unsubscribe or cancel registration\n"
+        "/latest - View the latest event\n"
+        "/contact <message> - Message the admin\n"
+        "\nAdmin only:\n"
+        "/subs - List subscribers and chat IDs\n"
+        "/count - Show subscriber count\n"
+        "/msg <chat_id> <message> - Message a subscriber\n"
+        "/broadcast <message> - Message all subscribers except admin\n"
+    )
 {
     load_subscribers();
 }
@@ -39,18 +52,15 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     });
 
     bot_.getEvents().onCommand("latest", [this](std::shared_ptr<TgBot::Message> message) {
-        {
-            std::scoped_lock lock(mutex_);
-            std::string payload = "Latest event: \n" + logs_.get_latest();
-            bot_.getApi().sendMessage(message->chat->id, payload);
-        }
+        std::string payload = "Latest event: \n" + logs_.get_latest();
+        bot_.getApi().sendMessage(message->chat->id, payload);
     });
 
     bot_.getEvents().onAnyMessage([this](std::shared_ptr<TgBot::Message> message) {
         insert_user(message);
     });
 
-    bot_.getEvents().onCommand("sublist",[this](std::shared_ptr<TgBot::Message> message) {
+    bot_.getEvents().onCommand("subs",[this](std::shared_ptr<TgBot::Message> message) {
         if (message->chat->id != admin_id_) {
             bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
             return;
@@ -58,14 +68,18 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         bot_.getApi().sendMessage(admin_id_, subs_to_string());
     });
 
-    bot_.getEvents().onCommand("subcount", [this](std::shared_ptr<TgBot::Message> message) {
-        std::scoped_lock lock(mutex_);
+    bot_.getEvents().onCommand("count", [this](std::shared_ptr<TgBot::Message> message) {
         if (message->chat->id != admin_id_) {
             bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
             return;
         }
         
-        std::string payload = "Subscribers: " + std::to_string(subscribers_.size());
+        std::size_t count{};
+        {
+            std::scoped_lock lock(mutex_);
+            count = subscribers_.size();
+        }
+        std::string payload = "Subscribers: " + std::to_string(count);
         bot_.getApi().sendMessage(admin_id_, payload);
     });
 
@@ -80,6 +94,10 @@ void TeleNotifier::long_poll(std::stop_token stop) {
     bot_.getEvents().onCommand("broadcast", [this](std::shared_ptr<TgBot::Message> message) {
         broadcast(message);
     });
+
+    bot_.getEvents().onCommand("help", [this](std::shared_ptr<TgBot::Message> message) {
+        send_help(message);
+    }); 
 
     try {
         const auto me =   bot_.getApi().getMe();
@@ -117,7 +135,7 @@ void TeleNotifier::send_notif(const std::string& formatted_event) {
         recipients = subscribers_;
     }
     
-    for (auto subscriber : recipients) {
+    for (const auto subscriber& : recipients) {
         try {
             bot_.getApi().sendMessage(subscriber.chat_id, formatted_event);
         } catch (const std::exception& e) {
@@ -251,23 +269,11 @@ void TeleNotifier::insert_user(const std::shared_ptr<TgBot::Message>& message) {
         );
     }
 
-    const std::string quick_tips =
-        "Commands:\n"
-        "/start - Subscribe or update your name\n"
-        "/stop - Unsubscribe or cancel registration\n"
-        "/latest - View the latest event\n"
-        "/contact <message> - Message the admin\n"
-        "\nAdmin only:\n"
-        "/sublist - List subscribers and chat IDs\n"
-        "/subcount - Show subscriber count\n"
-        "/msg <chat_id> <message> - Message a subscriber\n"
-        "/broadcast <message> - Message all subscribers except admin\n";
-    
-        const std::string reply = updated
+    const std::string reply = updated
         ? "Name Updated: Welcome back, " + name
         : "New User: Welcome, " + name;
     bot_.getApi().sendMessage(new_chat_id, reply);
-    bot_.getApi().sendMessage(new_chat_id, quick_tips);
+    send_help(message);
 
     const std::string admin_notif = updated
         ? "Name updated: " + name + ", " + std::to_string(new_chat_id)
@@ -390,8 +396,20 @@ void TeleNotifier::pm_to_admin(const std::shared_ptr<TgBot::Message>& message) {
     payload = "Incoming message from " + sender_name + " ("
             + std::to_string(sender_id)+ "):\n\n" + message_body;
 
-    bot_.getApi().sendMessage(admin_id_, payload);
-    bot_.getApi().sendMessage(sender_id, "Message successfuly sent");
+    try {
+        bot_.getApi().sendMessage(admin_id_, payload);
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to send to admin"
+                  << ": " << e.what() << "\n";
+        return;
+    }
+    
+    try {
+        bot_.getApi().sendMessage(sender_id, "Message successfuly sent");
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to notify sender"
+                  << ": " << e.what() << "\n";
+    }
 }
 
 void TeleNotifier::broadcast(const std::shared_ptr<TgBot::Message>& message) {
@@ -421,11 +439,7 @@ void TeleNotifier::broadcast(const std::shared_ptr<TgBot::Message>& message) {
 
     bool sent_all = true;
     
-    for (auto subscriber : recipients) {
-        if (!sent_all) {
-            bot_.getApi().sendMessage(admin_id_, "Failed!");
-            return;
-        }
+    for (const auto subscriber& : recipients) {
         if (subscriber.chat_id == admin_id_) {
             continue;
         }
@@ -433,7 +447,7 @@ void TeleNotifier::broadcast(const std::shared_ptr<TgBot::Message>& message) {
         try {
             bot_.getApi().sendMessage(subscriber.chat_id, payload);
         } catch (const std::exception& e) {
-            std::cout << "Notif failed for chat_id " << subscriber.chat_id
+            std::cerr << "Notif failed for chat_id " << subscriber.chat_id
                         << ": " << e.what() << "\n";
             sent_all = false;
         }
@@ -441,5 +455,16 @@ void TeleNotifier::broadcast(const std::shared_ptr<TgBot::Message>& message) {
 
     if (sent_all) {
         bot_.getApi().sendMessage(admin_id_, "Broadcast succeeded!");
+    } else {
+        bot_.getApi().sendMessage(admin_id_, "Some messages failed to send");
+    }
+}
+
+void TeleNotifier::send_help(const std::shared_ptr<TgBot::Message>& message) {
+    try {
+        bot_.getApi().sendMessage(message->chat->id, quick_tips_);
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to send help"
+                  << ": " << e.what() << "\n";
     }
 }

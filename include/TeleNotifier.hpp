@@ -24,6 +24,8 @@ class TeleNotifier {
     Logger& logs_;
     std::unordered_set<std::int64_t> awaiting_name_;
     const std::int64_t admin_id_;
+    const std::string quick_tips_;
+
     void load_subscribers();
     [[nodiscard]] bool isSubbed(std::int64_t id_to_check);
     [[nodiscard]] std::vector<Subscriber>::iterator find_sub(std::int64_t id_to_find);
@@ -32,6 +34,7 @@ class TeleNotifier {
     void admin_pm(const std::shared_ptr<TgBot::Message>& message);
     void pm_to_admin(const std::shared_ptr<TgBot::Message>& message);
     void broadcast(const std::shared_ptr<TgBot::Message>& message);
+    void send_help(const std::shared_ptr<TgBot::Message>& message);
 public:
     TeleNotifier(const char* token, Logger& logs, std::int64_t admin_id);
     void long_poll(std::stop_token stop);
