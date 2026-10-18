@@ -135,7 +135,7 @@ void TeleNotifier::send_notif(const std::string& formatted_event) {
         recipients = subscribers_;
     }
     
-    for (const auto subscriber& : recipients) {
+    for (const auto& subscriber : recipients) {
         try {
             bot_.getApi().sendMessage(subscriber.chat_id, formatted_event);
         } catch (const std::exception& e) {
@@ -439,7 +439,7 @@ void TeleNotifier::broadcast(const std::shared_ptr<TgBot::Message>& message) {
 
     bool sent_all = true;
     
-    for (const auto subscriber& : recipients) {
+    for (const auto& subscriber : recipients) {
         if (subscriber.chat_id == admin_id_) {
             continue;
         }

@@ -40,7 +40,13 @@ int main() {
     FaceRegistry registry{processor};
     PresenceTracker presence{};
 
+    std::filesystem::create_directories("outputs");
+
     std::ofstream logfile{"outputs/events.log", std::ios::app};
+    if (!logfile) {
+        std::cerr << "Could not open outputs/events.log\n";
+        return 1;
+    }
 
     const char* token = std::getenv("TGBOT_API_KEY");
     if (token == nullptr || *token == '\0') {

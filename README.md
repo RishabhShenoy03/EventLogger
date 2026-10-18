@@ -251,6 +251,7 @@ Press Ctrl+C to request shutdown. Active camera or network operations may take t
 
 | Command | Purpose |
 | --- | --- |
+| `/help` | Show the command reference |
 | `/start` | Register for notifications or update your display name |
 | `/stop` | Unsubscribe and cancel pending name registration |
 | `/latest` | Show the latest logged event from the current application run |
@@ -264,7 +265,9 @@ Send:
 /start
 ```
 
-Then send your chosen display name as a separate message.
+Then send your chosen display name as a separate message. After registration or a name update, the bot sends a confirmation and the command reference. You can request the reference again with `/help`.
+
+The reference includes admin commands, but displaying them does not grant permission to use them.
 
 Registered subscribers receive future presence notifications. Previous notifications are not replayed.
 
@@ -288,21 +291,21 @@ Admin commands require the sender's chat ID to match `TGBOT_ADMIN_CHAT_ID`. Disp
 
 | Command | Purpose |
 | --- | --- |
-| `/sublist` | List subscriber display names and chat IDs |
-| `/subcount` | Show the number of subscribers |
+| `/subs` | List subscriber display names and chat IDs |
+| `/count` | Show the number of subscribers |
 | `/msg <chat_id> <text>` | Send a private message to a registered subscriber |
 | `/broadcast <text>` | Send an announcement to subscribers, excluding the admin chat |
 
 List subscribers:
 
 ```text
-/sublist
+/subs
 ```
 
 Check the subscriber count:
 
 ```text
-/subcount
+/count
 ```
 
 Send a private message:
@@ -311,7 +314,7 @@ Send a private message:
 /msg 123456789 Hello from the Pi!
 ```
 
-Replace `123456789` with a numeric chat ID from `/sublist`. The recipient must already be subscribed.
+Replace `123456789` with a numeric chat ID from `/subs`. The recipient must already be subscribed.
 
 Use a single space between the command, recipient ID, and message text.
 
@@ -323,13 +326,15 @@ Send an announcement:
 
 Recipients see messages labelled as coming from the admin. Keep broadcast text on one line with the current parser.
 
-Broadcast delivery currently stops after a sending failure. Failed deliveries are not automatically retried.
+Broadcasts attempt delivery to every subscriber except the admin chat. A failure for one recipient does not stop attempts to the remaining recipients. The admin receives a success or partial-failure summary after the attempts finish. Failed deliveries are not automatically retried.
+
+The current success message means no send attempt reported an error; it does not confirm that recipients have read the message. If there are no eligible recipients, the bot still reports success.
 
 ### Access behaviour
 
 - Registration is open.
-- `/latest` and `/contact` are available to unregistered users.
-- `/sublist`, `/subcount`, `/msg`, and `/broadcast` are admin-only.
+- `/help`, `/latest`, and `/contact` are available to unregistered users.
+- `/subs`, `/count`, `/msg`, and `/broadcast` are admin-only.
 - The admin receives a notification when someone registers or updates their display name.
 - `/latest` refers to the current application run; previous events are not reloaded from the log file.
 
@@ -340,7 +345,7 @@ Broadcast delivery currently stops after a sending failure. Failed deliveries ar
 | Recognition threshold | Cosine similarity greater than 0.6 | `src/FaceRegistry.cpp` |
 | Absence timeout | 10 minutes | `include/PresenceTracker.hpp` |
 | Global entry cooldown | 30 seconds | `include/PresenceTracker.hpp` |
-| Unknown confirmation delay | 10 seconds | `include/PresenceTracker.hpp` |
+| Unknown confirmation delay | 5 seconds | `include/PresenceTracker.hpp` |
 | Camera mode | `/dev/video0`, MJPG, 1280×720, 30 FPS requested | `src/CameraCapture.cpp` |
 | Log timestamp display | SGT, fixed UTC+8 offset | `src/Logger.cpp` |
 
@@ -382,14 +387,16 @@ A separate Telegram thread handles commands through long polling. No public webh
 
 ## Manual testing
 
+The automated test targets are currently commented out in `CMakeLists.txt`. The manual `tele_test` and `camera_capture_test` executables are available, but there is no enabled CTest suite.
+
 A useful smoke test is:
 
-1. Register with `/start` and verify your name appears in `/sublist`.
+1. Register with `/start` and verify your name appears in `/subs`.
 2. Start outside the camera view, then enter after registration.
 3. Check that an entry appears in the local log and Telegram.
 4. Stay visible and check that entry events are not logged continuously.
-5. Leave the camera view for longer than the absence timeout and check for a departure event.
-6. Test `/latest`, `/subcount`, `/contact`, and `/msg`.
+5. Leave the camera view for longer than the 10-minute absence timeout and check for a departure event.
+6. Test `/help`, `/latest`, `/count`, `/contact`, and `/msg`, and verify that a non-admin cannot execute admin commands.
 7. Test `/broadcast` with consenting test subscribers.
 8. Restart and verify that subscribers remain registered.
 9. Use `/stop` and verify that the chat stops receiving future notifications.
@@ -435,7 +442,7 @@ The token variable is `TGBOT_API_KEY`, even if the error message refers to `TGBO
 
 ### Telegram notifications are missing
 
-Complete name registration, confirm the chat appears in `/sublist`, and trigger a new event.
+Complete name registration, confirm the chat appears in `/subs`, and trigger a new event.
 
 Check the local log and terminal for errors. Polling retries after network errors, but failed outgoing notifications are not replayed automatically.
 
