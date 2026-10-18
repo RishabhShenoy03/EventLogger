@@ -50,7 +50,7 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         insert_user(message);
     });
 
-    bot_.getEvents().onCommand("admin_sublist",[this](std::shared_ptr<TgBot::Message> message) {
+    bot_.getEvents().onCommand("asublist",[this](std::shared_ptr<TgBot::Message> message) {
         if (message->chat->id != admin_id_) {
             bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
             return;
@@ -58,7 +58,7 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         bot_.getApi().sendMessage(admin_id_, subs_to_string());
     });
 
-    bot_.getEvents().onCommand("admin_subcount", [this](std::shared_ptr<TgBot::Message> message) {
+    bot_.getEvents().onCommand("asubcount", [this](std::shared_ptr<TgBot::Message> message) {
         std::scoped_lock lock(mutex_);
         if (message->chat->id != admin_id_) {
             bot_.getApi().sendMessage(message->chat->id, "Bro thought he was an admin");
@@ -69,8 +69,12 @@ void TeleNotifier::long_poll(std::stop_token stop) {
         bot_.getApi().sendMessage(admin_id_, payload);
     });
 
-    bot_.getEvents().onCommand("admin_message", [this](std::shared_ptr<TgBot::Message> message) {
+    bot_.getEvents().onCommand("amessage", [this](std::shared_ptr<TgBot::Message> message) {
         send_admin_message(message);
+    });
+
+    bot_.getEvents().onCommand("sendmessage", [this](std::shared_ptr<TgBot::Message> message) {
+        send_message_to_admin(message);
     });
 
     try {
@@ -339,4 +343,37 @@ void TeleNotifier::send_admin_message(const std::shared_ptr<TgBot::Message>& mes
     else {
         bot_.getApi().sendMessage(admin_id_, "Person not in sub list");
     }
+}
+
+void TeleNotifier::send_message_to_admin(const std::shared_ptr<TgBot::Message>& message) {
+    std::string sender_name;
+    const std::int64_t sender_id = message->chat->id;
+
+    {
+        std::scoped_lock lock(mutex_);
+        auto it = find_sub(sender_id);
+        if (it != subscribers_.end()) {
+            sender_name = it->display_name;
+        }
+        else {
+            sender_name = "Unregistered User";
+        }
+    }
+
+    char delimiter = ' ';
+
+    std::istringstream input{message->text.value_or("")};
+
+    std::string command;
+    std::string message_body;   // actual message
+    std::string payload;        // with sender info for admin to read
+
+    std::getline(input, command, delimiter);
+    std::getline(input, message_body, '\0');
+
+    payload = "Incoming message from " + sender_name + " ("
+            + std::to_string(sender_id)+ "):\n\n" + message_body;
+
+    bot_.getApi().sendMessage(admin_id_, payload);
+    bot_.getApi().sendMessage(sender_id, "Message successfuly sent");
 }
