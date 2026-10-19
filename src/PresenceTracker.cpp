@@ -11,8 +11,8 @@ using Sysclock = std::chrono::system_clock;
 
 std::vector<Event> PresenceTracker::update(const std::vector<PersonMatch>& matches, const Clock::time_point& steady_now, const Sysclock::time_point& sys_now) {
     std::vector<Event> changes = erase_stale_entries(steady_now, sys_now);
-    std::vector<Event> entries =  handle_matches(steady_now, sys_now, matches);
-    changes.insert(changes.end(),entries.begin(), entries.end());
+    std::vector<Event> entries = handle_matches(steady_now, sys_now, matches);
+    changes.insert(changes.end(), entries.begin(), entries.end());
     return changes;
 }
 

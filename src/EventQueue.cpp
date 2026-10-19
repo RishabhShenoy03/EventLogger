@@ -29,7 +29,7 @@ std::optional<Event> EventQueue::try_pop() {
 }
 
 std::optional<Event> EventQueue::wait_and_pop() {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock lock(mutex_);
     
     cond_.wait(lock, [this]{                        // wait (release mutex) until queue is not empty OR queue not closed
         return !events_.empty() || closed_;         // consumer wake when there is work OR when shutdown has happen
@@ -58,7 +58,7 @@ bool EventQueue::push(const Event& event){
 
 void EventQueue::close() {
     {
-        std::unique_lock<std::mutex> lock(mutex_);
+        std::unique_lock lock(mutex_);
         closed_ = true;
         lock.unlock();
     }
