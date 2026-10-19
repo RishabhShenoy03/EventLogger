@@ -405,7 +405,7 @@ void TeleNotifier::pm_to_admin(const std::shared_ptr<TgBot::Message>& message) {
     }
     
     try {
-        bot_.getApi().sendMessage(sender_id, "Message successfuly sent");
+        bot_.getApi().sendMessage(sender_id, "Message successfully sent");
     } catch (const std::exception& e) {
         std::cerr << "Failed to notify sender"
                   << ": " << e.what() << "\n";
