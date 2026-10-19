@@ -16,7 +16,7 @@
 
 #define MATCH_THRESHOLD 0.6
 
-FaceRegistry::FaceRegistry(const FaceProcessor& processor)
+FaceRegistry::FaceRegistry(FaceProcessor& processor)
     : processor_(processor)
 {
     enroll_persons();
