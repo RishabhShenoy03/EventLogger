@@ -20,7 +20,7 @@ public:
     const std::filesystem::path enrolled_imgs = std::string("/home/rish/Desktop/projects/EventLogger/featuremap_images");
     FaceProcessor& processor_;
     
-    FaceRegistry(FaceProcessor& processor);
+    FaceRegistry(const FaceProcessor& processor);
     void enroll_persons();
     [[nodiscard]] PersonMatch match(const cv::Mat& feature);
 };

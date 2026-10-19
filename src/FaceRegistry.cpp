@@ -16,7 +16,7 @@
 
 #define MATCH_THRESHOLD 0.6
 
-FaceRegistry::FaceRegistry(FaceProcessor& processor)
+FaceRegistry::FaceRegistry(const FaceProcessor& processor)
     : processor_(processor)
 {
     enroll_persons();
@@ -34,7 +34,6 @@ void FaceRegistry::enroll_persons() {
         }
 
         for (const auto& imgentry : std::filesystem::directory_iterator(person_dir.path())) {
-            
             if (!imgentry.is_regular_file()){
                 continue;
             }
